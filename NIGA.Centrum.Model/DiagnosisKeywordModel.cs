@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace NIGA.Centrum.Model
+{
+    public class DiagnosisKeywordModel
+    {
+        public DiagnosisKeywordModel()
+        {
+            SectionIds = new List<int>();
+        }
+        public int KeywordId { get; set; } = 0;
+        public string keyword { get; set; } = string.Empty;
+        public List<int> SectionIds { get; set; }
+    }
+}

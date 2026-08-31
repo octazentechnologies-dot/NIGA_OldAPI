@@ -1,0 +1,17 @@
+student id :- need client verification.
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        [HttpPost("ChangePassword")]
+        public IActionResult Authenticate(LoginModel loginModel)
+        {
+            string username = loginModel.UserName;
+            string password = loginModel.Password;
+            var UserData =  _userManager.FindByEmailAsync(username);
+            return Ok();
+
+
+        }

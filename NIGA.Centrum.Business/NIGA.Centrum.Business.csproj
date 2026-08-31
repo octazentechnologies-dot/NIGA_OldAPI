@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NIGA.Centrum.Common\NIGA.Centrum.Common.csproj" />
+    <ProjectReference Include="..\NIGA.Centrum.Entity\NIGA.Centrum.Entity.csproj" />
+    <ProjectReference Include="..\NIGA.Centrum.Model\NIGA.Centrum.Model.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EditorConfigFiles Remove="D:\Niga_latest\API\NIGA.Centrum\NIGA.Centrum.Business\Interface\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\Niga_latest\API\NIGA.Centrum\NIGA.Centrum.Business\Interface\.editorconfig" />
+  </ItemGroup>
+
+</Project>
