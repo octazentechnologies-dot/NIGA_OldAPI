@@ -9,6 +9,7 @@ using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -97,6 +98,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveClinicalQuestions(List< ClinicalQuestionsModel> clinicalquestionsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -127,6 +129,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteClinicalQuestions(ClinicalQuestionsModel clinicalquestionsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -282,6 +285,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult AddEditClinicalQuestionsBodyPart(ClinicalQuestionsBodyPartModel clinicalQuestionsBodyPart)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -313,6 +317,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteQuestionBodyPartData(int questionId)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -344,6 +349,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteClinicalRubricData(int clinicalRubricId, int clinicalQuestionBodyPartId, int qbType)
         {
             ErrorResponseModel errorResponseModel = null;

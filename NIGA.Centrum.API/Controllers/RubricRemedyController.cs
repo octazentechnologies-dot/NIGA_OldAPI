@@ -9,6 +9,7 @@ using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -40,6 +41,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveRemedyDetails(List<RubricRemedyDetailsModel> rubricRemedyDetailsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -286,6 +288,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveUpdateRubricRemedy(RubricRemedyDetailModel rubricRemedyDetailsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -328,6 +331,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteRubricRemedyAuthor(RubricRemedyDeleteModel rubricRemedyDeleteModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -358,6 +362,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult UpdateIsSmallRubric(int rubricRemedyId, bool isSmallRubric)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -388,6 +393,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult UpdateIsConfirmationRubric(int rubricRemedyId, bool isConformationRubric)
         {
             ErrorResponseModel errorResponseModel = null;

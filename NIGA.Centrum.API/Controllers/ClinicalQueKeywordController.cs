@@ -6,6 +6,7 @@ using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 using System;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     [Route("api/[controller]")]
@@ -93,6 +94,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveClinicalQueKeyword(ClinicalQueKeywordsModel quekeywordModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -125,6 +127,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteClinicalQueKeyword(ClinicalQueKeywordsModel quekeywordModel)
         {
             ErrorResponseModel errorResponseModel = null;

@@ -81,8 +81,14 @@ namespace NIGA.Centrum.API
                 };
             });
 
-            // Add authorization services
-            services.AddAuthorization();
+            // M02 W0 — Admin Portal policy for clinical masters mutate APIs (apply in W1+)
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(NIGA.Centrum.Common.AdminAuthorizationPolicies.AdminPortal, policy =>
+                    policy.RequireAuthenticatedUser()
+                          .RequireAssertion(ctx =>
+                              NIGA.Centrum.Common.AdminAuthorizationPolicies.IsAdminPortalUser(ctx.User)));
+            });
 
             //Register all injecting interfaces with implemented class
             services.AddScoped<IUserService, UserService>();

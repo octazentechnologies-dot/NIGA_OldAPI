@@ -1,4 +1,4 @@
-﻿using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 using System;
@@ -10,7 +10,9 @@ using System.Text;
 namespace NIGA.Centrum.Business.Implementation
 {
     /// <summary>
-    /// This is implementation  for the package operations 
+    /// Package / subscription plan operations.
+    /// M02 W7 ADM-B03: PackageMaster + PackageEntryDetail are S1 SaaS subscription only —
+    /// never reuse PackageEntryDetail for S2 consult or S5 medicine billing.
     /// </summary>
    public class PackageService: IPackageService
     {

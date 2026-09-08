@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -95,6 +96,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveBodyPart(BodyPartModel bodypartModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -125,6 +127,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteBodyPart(BodyPartModel bodypartModel)
         {
             ErrorResponseModel errorResponseModel = null;

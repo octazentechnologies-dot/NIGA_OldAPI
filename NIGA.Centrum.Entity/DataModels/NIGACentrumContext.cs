@@ -2202,7 +2202,7 @@ namespace NIGA.Centrum.Entity.DataModels
 
                 entity.Property(e => e.UserPassword)
                     .IsRequired()
-                    .HasMaxLength(50);
+                    .HasMaxLength(500);
 
                 entity.Property(e => e.UserPhoto).HasMaxLength(250);
 

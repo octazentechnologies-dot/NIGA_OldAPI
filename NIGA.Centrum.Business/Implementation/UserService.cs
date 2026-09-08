@@ -1,4 +1,4 @@
-﻿using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Common;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
@@ -39,7 +39,9 @@ namespace NIGA.Centrum.Business.Implementation
                 /*Save record in user */
                 var userEntity = new UserMaster();
                 userEntity.UserName = model.UserName;
-                userEntity.UserPassword = model.UserPassword;
+                userEntity.UserPassword = UserPasswordHasher.IsHashed(model.UserPassword)
+                    ? model.UserPassword
+                    : UserPasswordHasher.Hash(model.UserPassword ?? string.Empty);
                 userEntity.MobileNo = "";
                 userEntity.EmailId = model.EmailId;
                 userEntity.CountryId = model.CountryId;
@@ -97,7 +99,12 @@ namespace NIGA.Centrum.Business.Implementation
 
                {
                     userEntity.UserName = model.UserName;
-                    userEntity.UserPassword = model.UserPassword;
+                    if (!string.IsNullOrWhiteSpace(model.UserPassword))
+                    {
+                        userEntity.UserPassword = UserPasswordHasher.IsHashed(model.UserPassword)
+                            ? model.UserPassword
+                            : UserPasswordHasher.Hash(model.UserPassword);
+                    }
                     userEntity.FirstName = model.FirstName;
                     userEntity.LastName = model.LastName;
                     userEntity.RoleId = model.RoleId;
@@ -129,7 +136,7 @@ namespace NIGA.Centrum.Business.Implementation
                 UserStatus = true,
                 FirstName = userEntity.FirstName,
                 LastName = userEntity.LastName,
-                UserPassword = userEntity.UserPassword,
+                UserPassword = null, // M01 — never return password hash/plaintext
                 RoleId = (int)userEntity.RoleId,
 
                 //LastName = "Admin",
@@ -236,12 +243,14 @@ namespace NIGA.Centrum.Business.Implementation
             {
                 try
                 {
-                    //string subject = "Forgot password link sent on your email. Please check.";
+                    // M01 SEC-02.02 — stop emailing plaintext/hash passwords.
+                    // Use New-API POST /api/Account/ForgotPassword (reset link) after PasswordResetToken table exists.
                     StringBuilder strBody = new StringBuilder();
                     strBody.Append("<body>");
-                    strBody.Append("Hello  " + userEntity.UserName);
-                    strBody.Append("<P>Your password for Homeo Centrum portal is - </P>");
-                    strBody.Append("</body>" + userEntity.UserPassword);
+                    strBody.Append("Hello " + userEntity.UserName);
+                    strBody.Append("<p>A password reset was requested for your Homeo Centrum account.</p>");
+                    strBody.Append("<p>For security, passwords are no longer sent by email. Please use the in-app Forgot Password flow (reset link) or contact your administrator.</p>");
+                    strBody.Append("</body>");
                     var emailModel = new EmailSenderModel();
                     emailModel.ToAddress = email;
                     emailModel.Body = strBody.ToString();
@@ -251,7 +260,7 @@ namespace NIGA.Centrum.Business.Implementation
                     {
                         emailModel.sentStatus = emailSenderService.SendMail(emailModel, smtpSettingsModel);
                     }
-                    message = "Email Send Successfully";
+                    message = "If the email exists, reset instructions were sent.";
                 }
                 catch (Exception ex)
                 {

@@ -7,6 +7,7 @@ using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 using System;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -129,6 +130,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveAuthor(AuthorMasterModel authorModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -159,6 +161,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteAuthor(AuthorMasterModel authorModel)
         {
             ErrorResponseModel errorResponseModel = null;
