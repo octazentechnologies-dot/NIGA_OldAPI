@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 
 namespace NIGA.Centrum.API.Controllers
@@ -15,7 +16,7 @@ namespace NIGA.Centrum.API.Controllers
     /// </summary>
     [Route("api/PatientLab")]
     [ApiController]
-    //[Authorize]
+    [Authorize]
     public class PatientLabController : BaseAPIController
     {
         IPatientLabOrderServices _patientLabOrderServices;
@@ -79,6 +80,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (!DoctorOwnership.IsAdminPortalUser(User))
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { success = false, message = "Access denied for this doctor resource." });
+
                 var patientLabOrderModel = _patientLabOrderServices.GetAllPatinetLabOrder(ref errorResponseModel);
 
                 if (patientLabOrderModel != null)
@@ -139,6 +144,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (!DoctorOwnership.IsAdminPortalUser(User))
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { success = false, message = "Access denied for this doctor resource." });
+
                 var patientLabEntryModel = _patientLabEntryServices.GetAllPatientLabEntry(ref errorResponseModel);
 
                 if (patientLabEntryModel != null)
@@ -197,6 +206,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var jwtUserId = DoctorOwnership.GetUserId(User);
+                if (jwtUserId.HasValue)
+                    patientLabOrderModel.UserId = jwtUserId.Value;
+
                 var response = _patientLabOrderServices.SavePatinetLabOrder(patientLabOrderModel, ref errorResponseModel);
 
                 if (response != null)
@@ -226,6 +239,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var jwtUserId = DoctorOwnership.GetUserId(User);
+                if (jwtUserId.HasValue)
+                    patientLabEntryModel.EnteredBy = jwtUserId.Value;
+
                 var response = _patientLabEntryServices.SavePatientLabEntry(patientLabEntryModel, ref errorResponseModel);
 
                 if (response != null)

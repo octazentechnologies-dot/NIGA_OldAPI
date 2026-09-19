@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 using System.Collections.Generic;
@@ -14,13 +15,14 @@ namespace NIGA.Centrum.API.Controllers
     public class PrescriptionController :  BaseAPIController
     {
         IPrescriptionService _prescriptionService;
-        /// <summary>
-        /// Used to initialize controller and inject prescription service
-        /// </summary>
-        /// <param name="prescriptionService"></param>
-        public PrescriptionController(IPrescriptionService prescriptionService)
+        IPatientAppointmentService _patientAppointmentService;
+
+        public PrescriptionController(
+            IPrescriptionService prescriptionService,
+            IPatientAppointmentService patientAppointmentService)
         {
             _prescriptionService = prescriptionService;
+            _patientAppointmentService = patientAppointmentService;
         }
 
       
@@ -40,6 +42,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = ForbidAppointmentIfNotOwner(prescriptionDetail?.AppointmentId ?? 0);
+                if (deny != null)
+                    return deny;
+
                 var diagnosisModel = _prescriptionService.SavePrescriptionDetail(prescriptionDetail, ref errorResponseModel);
 
                 if (diagnosisModel != null)
@@ -69,6 +75,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = ForbidAppointmentIfNotOwner(appointmentId);
+                if (deny != null)
+                    return deny;
+
                 var diagnosisModel = _prescriptionService.GetPrescriptionRubricDetail(appointmentId, ref errorResponseModel);
 
                 if (diagnosisModel != null)
@@ -98,6 +108,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = ForbidAppointmentIfNotOwner(appointmentId);
+                if (deny != null)
+                    return deny;
+
                 var diagnosisModel = _prescriptionService.GetPrescriptionRemedyDetail(appointmentId, ref errorResponseModel);
 
                 if (diagnosisModel != null)
@@ -139,6 +153,19 @@ namespace NIGA.Centrum.API.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        private IActionResult ForbidAppointmentIfNotOwner(int appointmentId)
+        {
+            if (appointmentId <= 0)
+                return BadRequest("AppointmentId is required.");
+
+            ErrorResponseModel lookupError = null;
+            var appointment = _patientAppointmentService.GetPatientAppById(appointmentId, ref lookupError);
+            if (appointment == null)
+                return ReturnErrorResponse(lookupError);
+
+            return DoctorOwnership.ForbidIfNotOwner(User, appointment.DoctorId);
         }
     }
 }
