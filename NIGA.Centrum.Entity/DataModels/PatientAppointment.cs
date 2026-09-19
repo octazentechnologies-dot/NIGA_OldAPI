@@ -20,6 +20,10 @@ namespace NIGA.Centrum.Entity.DataModels
         public bool? DeleteStatus { get; set; }
         public long UserId { get; set; }
         public int DoctorId { get; set; }
+        public string PaymentStatus { get; set; }
+        public bool? IsTele { get; set; }
+        public string VisitType { get; set; }
+        public string ConsultMode { get; set; }
 
         public virtual Doctor Doctor { get; set; }
         public virtual Patient Patient { get; set; }

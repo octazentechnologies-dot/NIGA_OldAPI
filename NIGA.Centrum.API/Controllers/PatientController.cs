@@ -105,6 +105,55 @@ namespace NIGA.Centrum.API.Controllers
 
         }
 
+        /// <summary>CLN-16.02 — GET complaints for a patient (classic SaveComplaints is POST).</summary>
+        [HttpGet("GetComplaints/{patientId}")]
+        [DoctorOnly]
+        [ProducesResponseType(typeof(PatientComplaintDto), 200)]
+        public IActionResult GetComplaints(int patientId)
+        {
+            ErrorResponseModel errorResponseModel = null;
+            try
+            {
+                int doctorId;
+                var rows = _patientService.GetComplaints(patientId, ref errorResponseModel, out doctorId);
+                if (doctorId > 0)
+                {
+                    var deny = DoctorOwnership.ForbidIfNotOwner(User, doctorId);
+                    if (deny != null)
+                        return deny;
+                }
+                return Ok(rows);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
+        /// <summary>CLN-16.02 — GET case details for a case (classic SaveCaseDetails is POST).</summary>
+        [HttpGet("GetCaseDetails/{caseId}")]
+        [DoctorOnly]
+        [ProducesResponseType(typeof(CaseDetailsModel), 200)]
+        public IActionResult GetCaseDetails(int caseId)
+        {
+            ErrorResponseModel errorResponseModel = null;
+            try
+            {
+                int doctorId;
+                var rows = _patientService.GetCaseDetails(caseId, ref errorResponseModel, out doctorId);
+                if (errorResponseModel != null && errorResponseModel.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return ReturnErrorResponse(errorResponseModel);
+                var deny = DoctorOwnership.ForbidIfNotOwner(User, doctorId);
+                if (deny != null)
+                    return deny;
+                return Ok(rows);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+            }
+        }
+
 
         /// <summary>
         /// Get patient 
@@ -145,6 +194,7 @@ namespace NIGA.Centrum.API.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("SaveComplaints")]
+        [DoctorOnly]
         public IActionResult SaveComplaints(PatientModel model)
         {
             if (model == null || !ModelState.IsValid)

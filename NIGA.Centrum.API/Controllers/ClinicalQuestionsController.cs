@@ -18,6 +18,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/clinicalquestions")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class ClinicalQuestionsController : BaseAPIController
     {
         IClinicalQuestionsService _clinicalquestionsService;

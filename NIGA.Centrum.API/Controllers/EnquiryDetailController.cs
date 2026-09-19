@@ -33,6 +33,7 @@ namespace NIGA.Centrum.API.Controllers
         /// <param name="enquiryId"></param>
         /// <returns></returns>
         [HttpGet("GetEnquiryDetailById/{enquiryId}")]
+        [Authorize]
         [ProducesResponseType(typeof(EnquiryDetailModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -61,6 +62,7 @@ namespace NIGA.Centrum.API.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("GetAllEnquiryDetails")]
+        [Authorize]
         [ProducesResponseType(typeof(EnquiryDetailModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -122,6 +124,7 @@ namespace NIGA.Centrum.API.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("DeleteEnquiryDetail")]
+        [Authorize]
         [ProducesResponseType(typeof(EnquiryDetailModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]

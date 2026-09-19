@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 using System;
@@ -223,6 +224,25 @@ namespace NIGA.Centrum.Business.Implementation
                     DateOfBirth = item.Patient.DateOfBirth,
                 });
             });
+
+            if (patientModelList.Count > 0)
+            {
+                var ids = patientModelList.Select(p => p.PatientID).Distinct().ToList();
+                var rows = context.PatientAppointment
+                    .Where(a => ids.Contains(a.PatientId) && a.DeleteStatus != true)
+                    .Select(a => new { a.PatientId, a.AppointmentDate })
+                    .ToList();
+                var lastByPatient = rows
+                    .GroupBy(a => a.PatientId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => LastVisitHelper.MaxParsedDate(g.Select(x => x.AppointmentDate)));
+                foreach (var p in patientModelList)
+                {
+                    if (lastByPatient.TryGetValue(p.PatientID, out var last))
+                        p.LastVisitAt = last;
+                }
+            }
 
             return patientModelList;
         }

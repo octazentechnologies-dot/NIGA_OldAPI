@@ -14,6 +14,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class CaseDetailsController : BaseAPIController
     {
         ICaseDetailsService _casedetailsService;

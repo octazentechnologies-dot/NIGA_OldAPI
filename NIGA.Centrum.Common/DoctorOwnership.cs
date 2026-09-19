@@ -87,5 +87,28 @@ namespace NIGA.Centrum.Common
                 StatusCode = StatusCodes.Status403Forbidden
             };
         }
+
+        /// <summary>
+        /// CLN-02.02 — Reception JWT cannot run case-taking / clinical mutate APIs.
+        /// AdminPortal is allowed. Matches New-API DoctorOwnership.ForbidIfReception.
+        /// </summary>
+        public static IActionResult ForbidIfReception(ClaimsPrincipal user)
+        {
+            if (IsAdminPortalUser(user))
+                return null;
+
+            var role = user?.FindFirst(ClaimTypes.Role)?.Value
+                ?? user?.FindFirst("RoleName")?.Value;
+            if (!string.IsNullOrWhiteSpace(role)
+                && role.Equals("Reception", StringComparison.OrdinalIgnoreCase))
+            {
+                return new ObjectResult(new { success = false, message = "Only the treating doctor can run case taking." })
+                {
+                    StatusCode = StatusCodes.Status403Forbidden
+                };
+            }
+
+            return null;
+        }
     }
 }

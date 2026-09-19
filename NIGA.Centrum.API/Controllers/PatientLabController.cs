@@ -17,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/PatientLab")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class PatientLabController : BaseAPIController
     {
         IPatientLabOrderServices _patientLabOrderServices;

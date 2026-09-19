@@ -78,18 +78,25 @@ namespace NIGA.Centrum.Business.Services
             int? doctorUserId,
             int expiryMin = 0)
         {
+            var effectiveRole = string.IsNullOrWhiteSpace(roleName) ? "Reception" : roleName.Trim();
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, receptionStaffId.ToString()),
                 new Claim(JwtRegisteredClaimNames.NameId, receptionStaffId.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, userId),
                 new Claim("DoctorID", doctorId.ToString()),
-                new Claim("DoctorUserId", doctorUserId?.ToString() ?? string.Empty),
                 new Claim("FullName", fullName),
-                new Claim(ClaimTypes.Role, roleName),
+                new Claim(ClaimTypes.Role, effectiveRole),
+                new Claim("RoleName", effectiveRole),
                 new Claim("RoleId", roleId?.ToString() ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            if (doctorUserId.HasValue && doctorUserId.Value > 0)
+            {
+                claims.Add(new Claim("DoctorUserID", doctorUserId.Value.ToString()));
+                claims.Add(new Claim("DoctorUserId", doctorUserId.Value.ToString()));
+            }
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 

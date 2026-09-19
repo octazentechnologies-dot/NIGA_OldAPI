@@ -848,6 +848,8 @@ namespace NIGA.Centrum.Entity.DataModels
                 entity.Property(e => e.EnquiryName).HasMaxLength(100);
 
                 entity.Property(e => e.MobileNo).HasMaxLength(15);
+
+                entity.Property(e => e.TicketStatus).HasMaxLength(30);
             });
 
             modelBuilder.Entity<FirmDetails>(entity =>
@@ -1430,6 +1432,12 @@ namespace NIGA.Centrum.Entity.DataModels
                 entity.Property(e => e.AppointmentDate).HasMaxLength(50);
 
                 entity.Property(e => e.Status).HasMaxLength(50);
+
+                entity.Property(e => e.PaymentStatus).HasMaxLength(30);
+
+                entity.Property(e => e.VisitType).HasMaxLength(30);
+
+                entity.Property(e => e.ConsultMode).HasMaxLength(30);
 
                 entity.HasOne(d => d.Doctor)
                     .WithMany(p => p.PatientAppointment)

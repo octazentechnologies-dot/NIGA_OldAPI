@@ -17,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/questionsection")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class QuestionSectionController : BaseAPIController
     {
         IQuestionSectionService _questionsectionService;

@@ -70,6 +70,8 @@ namespace NIGA.Centrum.Business.Implementation
                     MobileNo = item.MobileNo,
                     EnquiryDetails1 = item.EnquiryDetails1,
                     EnquiryStatus = item.EnquiryStatus,
+                    TicketStatus = item.TicketStatus,
+                    AssignedTo = item.AssignedTo,
                   
                 });
             });
@@ -100,6 +102,8 @@ namespace NIGA.Centrum.Business.Implementation
                 MobileNo = enquiryEntity.MobileNo,
                 EnquiryDetails1 = enquiryEntity.EnquiryDetails1,
                 EnquiryStatus = enquiryEntity.EnquiryStatus,
+                TicketStatus = enquiryEntity.TicketStatus,
+                AssignedTo = enquiryEntity.AssignedTo,
             };
         }
 
@@ -122,6 +126,8 @@ namespace NIGA.Centrum.Business.Implementation
                     details.MobileNo = model.MobileNo;
                     details.EnquiryDetails1 = model.EnquiryDetails1;
                     details.EnquiryStatus = true;
+                    details.TicketStatus = string.IsNullOrWhiteSpace(model.TicketStatus) ? "New" : model.TicketStatus;
+                    details.AssignedTo = model.AssignedTo;
                     context.EnquiryDetails.Add(details);
                 ////Send mail to user////
                 try
@@ -164,7 +170,10 @@ namespace NIGA.Centrum.Business.Implementation
                         details.MobileNo = model.MobileNo;
                         details.EnquiryDetails1 = model.EnquiryDetails1;
                         details.EnquiryStatus = true;
-                        context.EnquiryDetails.Add(details);   
+                        if (!string.IsNullOrWhiteSpace(model.TicketStatus))
+                            details.TicketStatus = model.TicketStatus;
+                        if (model.AssignedTo.HasValue)
+                            details.AssignedTo = model.AssignedTo;
                         context.SaveChanges();
                         message = "Enquiry Details Update Successfully";
                     }

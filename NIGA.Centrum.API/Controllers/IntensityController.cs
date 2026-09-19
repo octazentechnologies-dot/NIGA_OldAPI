@@ -17,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/intensity")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class IntensityController : BaseAPIController
     {
         IIntensityService _intensityService;

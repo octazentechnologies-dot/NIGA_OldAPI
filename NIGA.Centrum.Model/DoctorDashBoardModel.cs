@@ -16,5 +16,8 @@ namespace NIGA.Centrum.Model
         public int patientAppComplated { get; set; }
         public int patientAppWaiting { get; set; }
         public int patientAppNotArrived { get; set; }
+        public bool? IsOnline { get; set; }
+        public int teleQueueCount { get; set; }
+        public int unpaidCount { get; set; }
     }
 }
