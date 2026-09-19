@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 using System.Collections.Generic;
@@ -48,6 +49,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = new ErrorResponseModel();
             try
             {
+                var deny = DoctorOwnership.ForbidIfNotCallerOrAdmin(User, UserId);
+                if (deny != null)
+                    return deny;
+
                 var patientModelList = _patientService.GetCases(UserId, ref errorResponseModel);
 
                 if (patientModelList.Count != 0)
@@ -76,6 +81,14 @@ namespace NIGA.Centrum.API.Controllers
             }
             try
             {
+                var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
+                if (jwtDoctorId.HasValue && model.DoctorID <= 0)
+                    model.DoctorID = jwtDoctorId.Value;
+
+                var deny = DoctorOwnership.ForbidIfNotOwner(User, model.DoctorID);
+                if (deny != null)
+                    return deny;
+
                 var errorMessage = new ErrorResponseModel();
                 var userModel = _patientService.SavePatient(model, ref errorMessage);
                 if (userModel.PatientID != 0)
@@ -111,6 +124,9 @@ namespace NIGA.Centrum.API.Controllers
 
                 if (patientModelList != null)
                 {
+                    var deny = DoctorOwnership.ForbidIfNotOwner(User, patientModelList.DoctorID);
+                    if (deny != null)
+                        return deny;
                     return Ok(patientModelList);
                 }
                 return ReturnErrorResponse(errorResponseModel);
@@ -137,6 +153,14 @@ namespace NIGA.Centrum.API.Controllers
             }
             try
             {
+                var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
+                if (jwtDoctorId.HasValue && model.DoctorID <= 0)
+                    model.DoctorID = jwtDoctorId.Value;
+
+                var deny = DoctorOwnership.ForbidIfNotOwner(User, model.DoctorID);
+                if (deny != null)
+                    return deny;
+
                 var errorMessage = new ErrorResponseModel();
                 var userModel = _patientService.SaveComplaints(model, ref errorMessage);
                 if (userModel != "")

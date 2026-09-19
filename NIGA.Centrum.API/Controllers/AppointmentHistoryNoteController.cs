@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 using System.Security.Claims;
@@ -15,13 +16,14 @@ namespace NIGA.Centrum.API.Controllers
     public class AppointmentHistoryNoteController :BaseAPIController
     {
         IAppointmentHistoryNoteService _appointmentHistoryNote;
-    /// <summary>
-    /// Used to initialize controller and inject diagnosis service
-    /// </summary>
-    /// <param name="diagnosisService"></param>
-        public AppointmentHistoryNoteController(IAppointmentHistoryNoteService appointmentHistoryNote)
+        IPatientAppointmentService _patientAppointmentService;
+
+        public AppointmentHistoryNoteController(
+            IAppointmentHistoryNoteService appointmentHistoryNote,
+            IPatientAppointmentService patientAppointmentService)
         {
             _appointmentHistoryNote = appointmentHistoryNote;
+            _patientAppointmentService = patientAppointmentService;
         }
 
         /// <summary>
@@ -44,6 +46,9 @@ namespace NIGA.Centrum.API.Controllers
 
                 if (appointmentHistoryNote != null)
                 {
+                    var deny = ForbidAppointmentIfNotOwner(appointmentHistoryNote.AppointmentId);
+                    if (deny != null)
+                        return deny;
                     return Ok(appointmentHistoryNote);
                 }
                 return ReturnErrorResponse(errorResponseModel);
@@ -91,6 +96,10 @@ namespace NIGA.Centrum.API.Controllers
 
             try
             {
+                var deny = ForbidAppointmentIfNotOwner(appointmentHistoryNote?.AppointmentId);
+                if (deny != null)
+                    return deny;
+
                 var appointmentHistoryNoteResult = _appointmentHistoryNote.SaveUpdateAppointmentHistoryNote(appointmentHistoryNote, ref errorResponseModel, userId);
 
                 if (appointmentHistoryNoteResult != null)
@@ -131,6 +140,10 @@ namespace NIGA.Centrum.API.Controllers
             //}
             try
             {
+                var deny = ForbidAppointmentIfNotOwner(appointmentHistoryNote?.AppointmentId);
+                if (deny != null)
+                    return deny;
+
                 var appointmentHistoryNoteResult = _appointmentHistoryNote.DeleteAppointmentHistoryNote(appointmentHistoryNote, ref errorResponseModel, userId);
 
                 if (appointmentHistoryNoteResult != null)
@@ -161,6 +174,18 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (appointmentId.HasValue && appointmentId.Value > 0)
+                {
+                    var deny = ForbidAppointmentIfNotOwner(appointmentId);
+                    if (deny != null)
+                        return deny;
+                }
+                else if (!DoctorOwnership.IsAdminPortalUser(User))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden,
+                        new { success = false, message = "Access denied for this doctor resource." });
+                }
+
                 var appointmentHistoryNoteResult = _appointmentHistoryNote.GetAllAppointmentHistoryNotes(appointmentId, nigaParameters, ref errorResponseModel);
 
                 if (appointmentHistoryNoteResult != null)
@@ -173,6 +198,19 @@ namespace NIGA.Centrum.API.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
+        }
+
+        private IActionResult ForbidAppointmentIfNotOwner(int? appointmentId)
+        {
+            if (!appointmentId.HasValue || appointmentId.Value <= 0)
+                return BadRequest("AppointmentId is required.");
+
+            ErrorResponseModel lookupError = null;
+            var appointment = _patientAppointmentService.GetPatientAppById(appointmentId.Value, ref lookupError);
+            if (appointment == null)
+                return ReturnErrorResponse(lookupError);
+
+            return DoctorOwnership.ForbidIfNotOwner(User, appointment.DoctorId);
         }
     }
 }
