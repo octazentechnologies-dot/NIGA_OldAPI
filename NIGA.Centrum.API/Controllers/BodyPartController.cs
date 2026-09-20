@@ -17,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/bodypart")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class BodyPartController : BaseAPIController
     {
         IBodyPartService _bodypartService;

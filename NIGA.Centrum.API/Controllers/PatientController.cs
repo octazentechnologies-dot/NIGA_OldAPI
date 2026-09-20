@@ -81,6 +81,7 @@ namespace NIGA.Centrum.API.Controllers
             }
             try
             {
+                // DOC-04.02 — doctor or reception of this clinic only (JWT DoctorID).
                 var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
                 if (jwtDoctorId.HasValue && model.DoctorID <= 0)
                     model.DoctorID = jwtDoctorId.Value;

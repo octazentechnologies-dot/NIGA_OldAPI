@@ -40,6 +40,24 @@ namespace NIGA.Centrum.Common
         public static bool IsAdminPortalUser(ClaimsPrincipal user)
             => AdminAuthorizationPolicies.IsAdminPortalUser(user);
 
+        public static int? GetDoctorUserId(ClaimsPrincipal user)
+        {
+            if (user == null)
+                return null;
+
+            var value = user.FindFirst("DoctorUserID")?.Value
+                ?? user.FindFirst("DoctorUserId")?.Value;
+            return int.TryParse(value, out var doctorUserId) && doctorUserId > 0 ? doctorUserId : (int?)null;
+        }
+
+        public static string GetRoleName(ClaimsPrincipal user)
+        {
+            if (user == null)
+                return null;
+            return user.FindFirst(ClaimTypes.Role)?.Value
+                ?? user.FindFirst("RoleName")?.Value;
+        }
+
         public static bool EnsureDoctorOwns(ClaimsPrincipal user, int resourceDoctorId)
         {
             if (IsAdminPortalUser(user))
@@ -74,7 +92,11 @@ namespace NIGA.Centrum.Common
                 return true;
 
             var jwtUserId = GetUserId(user);
-            return jwtUserId.HasValue && jwtUserId.Value == (int)targetUserId;
+            if (jwtUserId.HasValue && jwtUserId.Value == (int)targetUserId)
+                return true;
+
+            var doctorUserId = GetDoctorUserId(user);
+            return doctorUserId.HasValue && doctorUserId.Value == (int)targetUserId;
         }
 
         public static IActionResult ForbidIfNotCallerOrAdmin(ClaimsPrincipal user, long targetUserId)
@@ -89,18 +111,22 @@ namespace NIGA.Centrum.Common
         }
 
         /// <summary>
-        /// CLN-02.02 — Reception JWT cannot run case-taking / clinical mutate APIs.
-        /// AdminPortal is allowed. Matches New-API DoctorOwnership.ForbidIfReception.
+        /// CLN-02.02 — Only the treating doctor (or AdminPortal) may run case-taking.
+        /// Reception and Patient JWTs are 403 even when DoctorID is present (reception staff).
+        /// Matches New-API DoctorOwnership.ForbidIfReception.
         /// </summary>
         public static IActionResult ForbidIfReception(ClaimsPrincipal user)
+            => ForbidIfNotTreatingDoctor(user);
+
+        public static IActionResult ForbidIfNotTreatingDoctor(ClaimsPrincipal user)
         {
             if (IsAdminPortalUser(user))
                 return null;
 
-            var role = user?.FindFirst(ClaimTypes.Role)?.Value
-                ?? user?.FindFirst("RoleName")?.Value;
+            var role = GetRoleName(user);
             if (!string.IsNullOrWhiteSpace(role)
-                && role.Equals("Reception", StringComparison.OrdinalIgnoreCase))
+                && (role.Equals("Reception", StringComparison.OrdinalIgnoreCase)
+                    || role.Equals("Patient", StringComparison.OrdinalIgnoreCase)))
             {
                 return new ObjectResult(new { success = false, message = "Only the treating doctor can run case taking." })
                 {
@@ -108,7 +134,17 @@ namespace NIGA.Centrum.Common
                 };
             }
 
-            return null;
+            if (!string.IsNullOrWhiteSpace(role)
+                && role.Equals("Doctor", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            if (GetDoctorId(user).HasValue)
+                return null;
+
+            return new ObjectResult(new { success = false, message = "Only the treating doctor can run case taking." })
+            {
+                StatusCode = StatusCodes.Status403Forbidden
+            };
         }
     }
 }

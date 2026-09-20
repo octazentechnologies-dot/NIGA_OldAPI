@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 
 namespace NIGA.Centrum.API.Controllers
@@ -43,6 +44,8 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (!DoctorOwnership.EnsureCallerIsUserOrAdmin(User, patientAppmodel.UserId))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Access denied for this doctor resource." });
                 var patientAppModel = _doctorDashBoardService.GetPatientAppCount(patientAppmodel.UserId, patientAppmodel.AppointmentDate, ref errorResponseModel);
 
                 if (patientAppModel != null)
@@ -72,6 +75,8 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (!DoctorOwnership.EnsureCallerIsUserOrAdmin(User, patientAppmodel.UserId))
+                    return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Access denied for this doctor resource." });
                 var patientAppModel = _doctorDashBoardService.GetPatientAppUserDate(patientAppmodel.UserId, patientAppmodel.AppointmentDate, ref errorResponseModel);
 
                 if (patientAppModel != null)
