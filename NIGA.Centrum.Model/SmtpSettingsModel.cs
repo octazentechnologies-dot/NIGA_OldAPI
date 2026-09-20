@@ -13,5 +13,6 @@ namespace NIGA.Centrum.Model
         public bool enableSsl { get; set; }
         public string userName { get; set; }
         public string password { get; set; }
+        public string appName { get; set; }
     }
 }
