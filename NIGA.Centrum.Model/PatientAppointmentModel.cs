@@ -21,6 +21,10 @@ namespace NIGA.Centrum.Model
         public int CaseId { get; set; }
 
         public string Message { get; set; }
+        public string PaymentStatus { get; set; }
+        public bool? IsTele { get; set; }
+        public string VisitType { get; set; }
+        public string ConsultMode { get; set; }
 
        
     }
@@ -42,6 +46,10 @@ namespace NIGA.Centrum.Model
         public string DoctorName { get; set; }
         public int CaseId { get; set; }
         public int HistoryNoteId { get; set; }
+        public string PaymentStatus { get; set; }
+        public bool? IsTele { get; set; }
+        public string VisitType { get; set; }
+        public string ConsultMode { get; set; }
 
 
     }

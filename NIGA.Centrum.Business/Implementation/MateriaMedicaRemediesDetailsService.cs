@@ -70,5 +70,30 @@ namespace NIGA.Centrum.Business.Implementation
 
 
         }
+
+        public List<MateriaMedicaRemediesDetailsModel> GetMateriaMedicaByRemedy(long remedyId, ref ErrorResponseModel errorResponseModel)
+        {
+            errorResponseModel = new ErrorResponseModel();
+            var authorIds = context.MateriaMedicaMaster
+                .Where(x => x.RemedyId == remedyId && x.IsDeleted == false && x.AuthorId != null)
+                .Select(x => x.AuthorId.Value)
+                .Distinct()
+                .ToList();
+
+            if (authorIds.Count == 0)
+            {
+                errorResponseModel.StatusCode = System.Net.HttpStatusCode.NotFound;
+                errorResponseModel.Message = "MateriaMedica Not Found";
+                return new List<MateriaMedicaRemediesDetailsModel>();
+            }
+
+            var list = new List<MateriaMedicaRemediesDetailsModel>();
+            foreach (var authorId in authorIds)
+            {
+                var err = new ErrorResponseModel();
+                list.Add(GetMateriaMedicaRemediesDetails(remedyId, authorId, ref err));
+            }
+            return list;
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/questiongroup")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class QuestionGroupController : BaseAPIController
     {
         IQuestionGroupService _questiongroupService;

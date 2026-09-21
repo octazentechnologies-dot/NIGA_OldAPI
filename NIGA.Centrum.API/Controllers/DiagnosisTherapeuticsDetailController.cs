@@ -11,6 +11,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class DiagnosisTherapeuticsDetailController : BaseAPIController
     {
         IDiagnosisTherapeuticsDetailService _diagnosisTherapeuticsDetailService;

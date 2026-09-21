@@ -130,6 +130,10 @@ namespace NIGA.Centrum.Business.Implementation
                                      DoctorId = patientAppointment.DoctorId,
                                      CaseId = caseEntryDetail.CaseId,
                                      HistoryNoteId =AHN!=null?AHN.HistoryId:0,
+                                     PaymentStatus = patientAppointment.PaymentStatus,
+                                     IsTele = patientAppointment.IsTele,
+                                     VisitType = patientAppointment.VisitType,
+                                     ConsultMode = patientAppointment.ConsultMode,
 
                                  }).ToList();
             

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/clipboardRubrics")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class ClipboardRubricsController : BaseAPIController
     {
         IClipboardRubricsService _clipboardRubricsService;

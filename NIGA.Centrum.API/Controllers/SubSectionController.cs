@@ -19,6 +19,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/subsection")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class SubSectionController : BaseAPIController
     {
         ISubSectionService _subsectionService;

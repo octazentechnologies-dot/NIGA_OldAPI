@@ -61,5 +61,9 @@ namespace NIGA.Centrum.Business.Interface
                 /// <returns></returns>
         string Deletepatient(int patientId, ref ErrorResponseModel errorResponseModel);
 
+        List<PatientComplaintDto> GetComplaints(int patientId, ref ErrorResponseModel errorResponseModel, out int doctorId);
+
+        List<CaseDetailsModel> GetCaseDetails(int caseId, ref ErrorResponseModel errorResponseModel, out int doctorId);
+
     }
 }

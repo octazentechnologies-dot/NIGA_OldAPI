@@ -53,6 +53,10 @@ namespace NIGA.Centrum.Business.Implementation
                     p.AppointmentTime,
                     p.Status,
                     p.DeleteStatus,
+                    p.PaymentStatus,
+                    p.IsTele,
+                    p.VisitType,
+                    p.ConsultMode,
                     c.CaseId,
                     
                 }
@@ -79,7 +83,11 @@ namespace NIGA.Centrum.Business.Implementation
                     AppointmentTime = item.AppointmentTime,
                     Status = item.Status,
                     DeleteStatus = item.DeleteStatus,
-                    CaseId = item.CaseId
+                    CaseId = item.CaseId,
+                    PaymentStatus = item.PaymentStatus,
+                    IsTele = item.IsTele,
+                    VisitType = item.VisitType,
+                    ConsultMode = item.ConsultMode
                    
                    
                 });
@@ -105,6 +113,20 @@ namespace NIGA.Centrum.Business.Implementation
             appointmentCount.patientAppComplated = context.PatientAppointment.Where(x => x.AppointmentDate == appointmentDate && x.UserId == userId && x.Status == w).Count();
             appointmentCount.patientAppWaiting = context.PatientAppointment.Where(x => x.AppointmentDate == appointmentDate && x.UserId == userId && x.Status == a).Count();
             appointmentCount.patientAppNotArrived = context.PatientAppointment.Where(x => x.AppointmentDate == appointmentDate && x.UserId == userId && x.Status == h).Count();
+
+            var doctor = context.Doctor.FirstOrDefault(x => x.UserId == userId);
+            if (doctor != null)
+                appointmentCount.IsOnline = doctor.IsOnline;
+
+            var dayAppts = context.PatientAppointment.Where(x => x.AppointmentDate == appointmentDate && x.UserId == userId && x.DeleteStatus != true);
+            appointmentCount.teleQueueCount = dayAppts.Count(x =>
+                x.IsTele == true
+                || x.Status == "E-Consult"
+                || x.Status == "E-CONSULT");
+            appointmentCount.unpaidCount = dayAppts.Count(x =>
+                x.PaymentStatus != null
+                && x.PaymentStatus != "Paid"
+                && x.PaymentStatus != "Waived");
 
             return appointmentCount;
         }

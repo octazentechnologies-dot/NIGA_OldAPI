@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 
 namespace NIGA.Centrum.API.Controllers
@@ -47,6 +48,9 @@ namespace NIGA.Centrum.API.Controllers
 
                 if (patientAppModel != null)
                 {
+                    var deny = DoctorOwnership.ForbidIfNotOwner(User, patientAppModel.DoctorId);
+                    if (deny != null)
+                        return deny;
                     return Ok(patientAppModel);
                 }
                 return ReturnErrorResponse(errorResponseModel);
@@ -73,6 +77,14 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
+                if (jwtDoctorId.HasValue && patientAppointmentModel.DoctorId <= 0)
+                    patientAppointmentModel.DoctorId = jwtDoctorId.Value;
+
+                var deny = DoctorOwnership.ForbidIfNotOwner(User, patientAppointmentModel.DoctorId);
+                if (deny != null)
+                    return deny;
+
                 var patientAppModel = _patientAppointmentService.SavePatientApp(patientAppointmentModel, ref errorResponseModel);
 
                 if (patientAppModel != null)
@@ -101,6 +113,10 @@ namespace NIGA.Centrum.API.Controllers
             ErrorResponseModel errorResponseModel = new ErrorResponseModel();
             try
             {
+                var denyUser = DoctorOwnership.ForbidIfNotCallerOrAdmin(User, UserId);
+                if (denyUser != null)
+                    return denyUser;
+
                 var patientModelList = _patientAppointmentService.GetCasesByUser(UserId, ref errorResponseModel);
 
                 if (patientModelList != null)
@@ -134,6 +150,14 @@ namespace NIGA.Centrum.API.Controllers
                 {
                     return BadRequest("Invalid request data");
                 }
+
+                var existing = _patientAppointmentService.GetPatientAppById(model.PatientAppId, ref errorResponseModel);
+                if (existing == null)
+                    return ReturnErrorResponse(errorResponseModel);
+
+                var deny = DoctorOwnership.ForbidIfNotOwner(User, existing.DoctorId);
+                if (deny != null)
+                    return deny;
 
                 var result = _patientAppointmentService
                     .UpdateAppointmentStatus(model, ref errorResponseModel);
