@@ -313,6 +313,7 @@ namespace Niga_Domain.API.Controllers
                     IsSuperUser = false,
                     DoctorId = receptionStaff.DoctorId,
                     ReceptionStaffId = receptionStaff.ReceptionStaffId,
+                    DoctorUserId = doctorUserId,
                     Token = receptionToken,
                     IsPlanActive = false,
                     IslastFiveDays = false,

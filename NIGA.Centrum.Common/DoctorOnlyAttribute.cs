@@ -8,6 +8,9 @@ namespace NIGA.Centrum.Common
     {
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            if (context.HttpContext.User?.Identity?.IsAuthenticated != true)
+                return;
+
             var deny = DoctorOwnership.ForbidIfReception(context.HttpContext.User);
             if (deny is ObjectResult obj)
                 context.Result = obj;
