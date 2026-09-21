@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -16,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/diagnosis")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class DiagnosisController : BaseAPIController
     {
         IDiagnosisService _diagnosisService;
@@ -96,6 +98,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveDiagnosis(DiagnosisModel diagnosismodel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -126,6 +129,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteDiagnosis(DiagnosisModel diagnosisModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -159,6 +163,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteDiagnosisRubric(DiagnosisRubricDeleteTabWise diagnosisrubricModel)
         {
             ErrorResponseModel errorResponseModel = null;

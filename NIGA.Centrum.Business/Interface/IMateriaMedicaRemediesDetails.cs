@@ -9,5 +9,7 @@ namespace NIGA.Centrum.Business.Interface
     {
         MateriaMedicaRemediesDetailsModel GetMateriaMedicaRemediesDetails(long remedyId, long authorId,  ref ErrorResponseModel errorResponseModel);
 
+        List<MateriaMedicaRemediesDetailsModel> GetMateriaMedicaByRemedy(long remedyId, ref ErrorResponseModel errorResponseModel);
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 using System;
@@ -120,6 +121,8 @@ namespace NIGA.Centrum.Business.Implementation
                 p.DiagnosisIds = string.Join(',', diagnosisList.ToArray());
                 patientModelList.Add(p);
             }
+
+            BindLastVisitAt(patientModelList);
             return patientModelList;
         }
 
@@ -255,6 +258,77 @@ namespace NIGA.Centrum.Business.Implementation
                 Message = " Patient Delete Successfully";
             }
             return Message;
+        }
+
+        public List<PatientComplaintDto> GetComplaints(int patientId, ref ErrorResponseModel errorResponseModel, out int doctorId)
+        {
+            errorResponseModel = new ErrorResponseModel();
+            doctorId = 0;
+            var caseRow = context.CaseEntryDetails.FirstOrDefault(c => c.PatientId == patientId && c.DeleteStatus == false);
+            if (caseRow == null)
+                return new List<PatientComplaintDto>();
+
+            doctorId = caseRow.DoctorId;
+            return context.CaseEntryChiefComplaint
+                .Where(c => c.CaseId == caseRow.CaseId)
+                .Select(c => new PatientComplaintDto
+                {
+                    CaseChiefComplaintId = c.CaseChiefComplaintId,
+                    CaseId = c.CaseId,
+                    ChiefComplaintName = c.ChiefComplaintName,
+                    DoctorId = caseRow.DoctorId
+                })
+                .ToList();
+        }
+
+        public List<CaseDetailsModel> GetCaseDetails(int caseId, ref ErrorResponseModel errorResponseModel, out int doctorId)
+        {
+            errorResponseModel = new ErrorResponseModel();
+            doctorId = 0;
+            var caseRow = context.CaseEntryDetails.FirstOrDefault(c => c.CaseId == caseId && c.DeleteStatus == false);
+            if (caseRow == null)
+            {
+                errorResponseModel.StatusCode = HttpStatusCode.NotFound;
+                errorResponseModel.Message = "Case not found";
+                return new List<CaseDetailsModel>();
+            }
+
+            doctorId = caseRow.DoctorId;
+            return context.CaseDetails
+                .Where(d => d.CaseId == caseId)
+                .Select(d => new CaseDetailsModel
+                {
+                    CaseDetailId = d.CaseDetailId,
+                    CaseId = d.CaseId,
+                    SubsectionId = d.SubsectionId,
+                    IntensityId = d.IntensityId,
+                    RemedyCount = d.RemedyCount
+                })
+                .ToList();
+        }
+
+        private void BindLastVisitAt(List<PatientModel> patients)
+        {
+            if (patients == null || patients.Count == 0)
+                return;
+
+            var ids = patients.Select(p => p.PatientID).Distinct().ToList();
+            var rows = context.PatientAppointment
+                .Where(a => ids.Contains(a.PatientId) && a.DeleteStatus != true)
+                .Select(a => new { a.PatientId, a.AppointmentDate })
+                .ToList();
+
+            var lastByPatient = rows
+                .GroupBy(a => a.PatientId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => LastVisitHelper.MaxParsedDate(g.Select(x => x.AppointmentDate)));
+
+            foreach (var p in patients)
+            {
+                if (lastByPatient.TryGetValue(p.PatientID, out var last))
+                    p.LastVisitAt = last;
+            }
         }
     }
 }

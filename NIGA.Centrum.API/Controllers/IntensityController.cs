@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -16,6 +17,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/intensity")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class IntensityController : BaseAPIController
     {
         IIntensityService _intensityService;
@@ -95,6 +97,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveIntensity(IntensityModel intensityModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -125,6 +128,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteIntensity(IntensityModel intensityModel)
         {
             ErrorResponseModel errorResponseModel = null;

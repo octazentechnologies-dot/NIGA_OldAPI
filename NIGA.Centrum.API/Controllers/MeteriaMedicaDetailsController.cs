@@ -94,6 +94,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveMateriaMedicaDetails(MateriaMedicaDetailModel materiamedicadetailmodel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -124,6 +125,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteMateriaMedicaDetails(MateriaMedicaDetailModel materiamedicadetailmodel)
         {
             ErrorResponseModel errorResponseModel = null;

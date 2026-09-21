@@ -6,11 +6,13 @@ using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Model;
 using System;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class AllopathicDrugController : BaseAPIController
     {
         IAllopathicDrugService _allopathicDrugService;
@@ -91,7 +93,8 @@ namespace NIGA.Centrum.API.Controllers
     [ProducesResponseType(typeof(string), 404)]
     [ProducesResponseType(typeof(string), 400)]
     [ProducesResponseType(typeof(string), 500)]
-    public IActionResult SaveAllopathicDrug(AllopathicDrugModel allopathicDrugModel)
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
+        public IActionResult SaveAllopathicDrug(AllopathicDrugModel allopathicDrugModel)
     {
         ErrorResponseModel errorResponseModel = null;
         try
@@ -121,7 +124,8 @@ namespace NIGA.Centrum.API.Controllers
     [ProducesResponseType(typeof(string), 404)]
     [ProducesResponseType(typeof(string), 400)]
     [ProducesResponseType(typeof(string), 500)]
-    public IActionResult DeleteAllopathicDrug(AllopathicDrugModel allopathicDrugModel)
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
+        public IActionResult DeleteAllopathicDrug(AllopathicDrugModel allopathicDrugModel)
     {
         ErrorResponseModel errorResponseModel = null;
         try

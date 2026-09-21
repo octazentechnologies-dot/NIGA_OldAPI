@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NIGA.Centrum.Business.Interfaces;
 using NIGA.Centrum.Entity.DataModels;
@@ -22,8 +22,10 @@ namespace NIGA.Centrum.Business.Services
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["JWT:Secret"]));
         }
 
-        public async Task<string> CreateToken(UserMaster user, int expiryMin = 0)
+        public async Task<string> CreateToken(UserMaster user, int expiryMin = 0, string roleName = null, int? doctorId = null)
         {
+            // M02 W0: RoleName + ClaimTypes.Role enable AdminPortal policy (RoleId already present).
+            // M01 SEC-01.02: DoctorID claim for patient ownership.
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -33,6 +35,17 @@ namespace NIGA.Centrum.Business.Services
                 new Claim("FirmIds", user.FirmIds ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            if (!string.IsNullOrWhiteSpace(roleName))
+            {
+                claims.Add(new Claim("RoleName", roleName));
+                claims.Add(new Claim(ClaimTypes.Role, roleName));
+            }
+
+            if (doctorId.HasValue && doctorId.Value > 0)
+            {
+                claims.Add(new Claim("DoctorID", doctorId.Value.ToString()));
+            }
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 
@@ -65,18 +78,25 @@ namespace NIGA.Centrum.Business.Services
             int? doctorUserId,
             int expiryMin = 0)
         {
+            var effectiveRole = string.IsNullOrWhiteSpace(roleName) ? "Reception" : roleName.Trim();
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, receptionStaffId.ToString()),
                 new Claim(JwtRegisteredClaimNames.NameId, receptionStaffId.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, userId),
                 new Claim("DoctorID", doctorId.ToString()),
-                new Claim("DoctorUserId", doctorUserId?.ToString() ?? string.Empty),
                 new Claim("FullName", fullName),
-                new Claim(ClaimTypes.Role, roleName),
+                new Claim(ClaimTypes.Role, effectiveRole),
+                new Claim("RoleName", effectiveRole),
                 new Claim("RoleId", roleId?.ToString() ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            if (doctorUserId.HasValue && doctorUserId.Value > 0)
+            {
+                claims.Add(new Claim("DoctorUserID", doctorUserId.Value.ToString()));
+                claims.Add(new Claim("DoctorUserId", doctorUserId.Value.ToString()));
+            }
 
             var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
 

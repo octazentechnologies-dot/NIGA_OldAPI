@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using NIGA.Centrum.Common;
@@ -166,10 +166,36 @@ namespace Niga_Domain.API.Controllers
 
                 if (userEntity != null)
                 {
-                    if (userEntity.UserPassword != model.Password)
+                    // Corrupt/truncated hash (often written when UserPassword was still NVARCHAR(50))
+                    if (UserPasswordHasher.IsCorruptHash(userEntity.UserPassword))
+                    {
+                        return Unauthorized(new
+                        {
+                            message = "Invalid username or password",
+                            detail = "Password hash in database is corrupted/truncated. Reset UserPassword to plaintext (known password) after ensuring column is NVARCHAR(500), then login again so the API can re-hash it. Do not paste manual encryption."
+                        });
+                    }
+
+                    // M01 SEC-01.02 — verify PBKDF2 hash or legacy plaintext
+                    if (!UserPasswordHasher.Verify(model.Password, userEntity.UserPassword))
                         return Unauthorized(new { message = "Invalid username or password" });
 
-                    if ((bool)!userEntity.IsUserActivated)
+                    // SEC-01.01 — lazy migrate existing plaintext → full PBKDF2 (requires NVARCHAR(500))
+                    string passwordHashWarning = null;
+                    if (!UserPasswordHasher.IsHashed(userEntity.UserPassword))
+                    {
+                        try
+                        {
+                            passwordHashWarning = await PersistUserPasswordHashAsync(userEntity, model.Password);
+                        }
+                        catch (Exception hashEx)
+                        {
+                            // Never block login if hashing/persist fails — keep plaintext and continue
+                            passwordHashWarning = "Password hash not saved: " + hashEx.Message;
+                        }
+                    }
+
+                    if (userEntity.IsUserActivated == false)
                         return Unauthorized(new { message = "Account is deactivated. Please contact administrator." });
 
                     var roleEntity = await _context.RoleMaster
@@ -178,7 +204,16 @@ namespace Niga_Domain.API.Controllers
                     if (roleEntity == null)
                         return BadRequest(new { message = "User role not found" });
 
-                    var token = await _tokenService.CreateToken(userEntity);
+                    int? doctorId = null;
+                    var doctorForToken = await _context.Doctor
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(d =>
+                            d.UserId == userEntity.UserId &&
+                            d.DeleteStatus == false);
+                    if (doctorForToken != null)
+                        doctorId = doctorForToken.DoctorId;
+
+                    var token = await _tokenService.CreateToken(userEntity, 0, roleEntity.RoleName, doctorId);
 
                     var userData = new AuthModel
                     {
@@ -191,23 +226,19 @@ namespace Niga_Domain.API.Controllers
                         Token = token,
                         IsPlanActive = false,
                         IslastFiveDays = false,
-                        DaysRemaining = 0
+                        DaysRemaining = 0,
+                        DoctorId = doctorId
                     };
 
-                    if (roleEntity.RoleId == 3)
+                    if (roleEntity.RoleId == 3 || string.Equals(roleEntity.RoleName, "Doctor", StringComparison.OrdinalIgnoreCase))
                     {
-                        var doctorEntity = await _context.Doctor
-                            .FirstOrDefaultAsync(d =>
-                                d.UserId == userEntity.UserId &&
-                                d.DeleteStatus == false);
-
-                        if (doctorEntity != null)
+                        if (doctorForToken != null)
                         {
-                            userData.DoctorId = doctorEntity.DoctorId;
+                            userData.DoctorId = doctorForToken.DoctorId;
 
                             var userSubscription = await _context.PackageEntryDetails
                                 .Where(p =>
-                                    p.DoctorId == doctorEntity.DoctorId &&
+                                    p.DoctorId == doctorForToken.DoctorId &&
                                     p.IsActive == true)
                                 .OrderByDescending(p => p.ExpiryDate)
                                 .FirstOrDefaultAsync();
@@ -231,7 +262,8 @@ namespace Niga_Domain.API.Controllers
                     {
                         success = true,
                         message = "Login successful",
-                        data = userData
+                        data = userData,
+                        warning = passwordHashWarning
                     });
                 }
 
@@ -314,16 +346,125 @@ namespace Niga_Domain.API.Controllers
                     data = receptionData
                 });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "An error occurred during login. Please try again."
+                    message = "An error occurred during login. Please try again.",
+                    detail = ex.Message,
+                    exceptionType = ex.GetType().FullName
                 });
             }
         }
 
+
+        /// <summary>
+        /// Writes PBKDF2 hash. Prefers EF SaveChanges; falls back to raw SQL.
+        /// Restores plaintext only when DB value is clearly truncated/corrupt.
+        /// </summary>
+        private async Task<string> PersistUserPasswordHashAsync(UserMaster user, string plaintextPassword)
+        {
+            var hashed = UserPasswordHasher.Hash(plaintextPassword);
+            if (!UserPasswordHasher.Verify(plaintextPassword, hashed))
+                throw new InvalidOperationException("Password hasher self-check failed.");
+
+            var now = DateTime.UtcNow;
+            var previous = user.UserPassword;
+
+            // 1) EF update (tracked entity)
+            user.UserPassword = hashed;
+            user.ChangedDate = now;
+            await _context.SaveChangesAsync();
+
+            // 2) Fresh read (no tracker)
+            var stored = await _context.UserMaster
+                .AsNoTracking()
+                .Where(x => x.UserId == user.UserId)
+                .Select(x => x.UserPassword)
+                .FirstOrDefaultAsync();
+
+            if (UserPasswordHasher.IsWellFormedHash(stored)
+                && UserPasswordHasher.Verify(plaintextPassword, stored))
+            {
+                user.UserPassword = stored;
+                return null;
+            }
+
+            // 3) Retry with raw SQL if EF path did not stick
+            try
+            {
+                await _context.Database.ExecuteSqlCommandAsync(
+                    "UPDATE dbo.UserMaster SET UserPassword = {0}, ChangedDate = {1} WHERE UserId = {2}",
+                    hashed,
+                    now,
+                    user.UserId);
+
+                stored = await _context.UserMaster
+                    .AsNoTracking()
+                    .Where(x => x.UserId == user.UserId)
+                    .Select(x => x.UserPassword)
+                    .FirstOrDefaultAsync();
+
+                if (UserPasswordHasher.IsWellFormedHash(stored)
+                    && UserPasswordHasher.Verify(plaintextPassword, stored))
+                {
+                    user.UserPassword = stored;
+                    return null;
+                }
+            }
+            catch
+            {
+                // fall through to truncate handling
+            }
+
+            // 4) Truncated/corrupt → restore previous plaintext so login keeps working
+            if (string.IsNullOrEmpty(stored)
+                || stored.Length < UserPasswordHasher.MinWellFormedHashLength
+                || UserPasswordHasher.IsCorruptHash(stored))
+            {
+                user.UserPassword = previous ?? plaintextPassword;
+                user.ChangedDate = now;
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch
+                {
+                    try
+                    {
+                        await _context.Database.ExecuteSqlCommandAsync(
+                            "UPDATE dbo.UserMaster SET UserPassword = {0}, ChangedDate = {1} WHERE UserId = {2}",
+                            user.UserPassword,
+                            now,
+                            user.UserId);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+
+                return "UserPassword hash was truncated or not persisted. Password kept as plaintext. Confirm column NVARCHAR(500) and restart Old-API.";
+            }
+
+            // Keep intended hash in memory; force SQL once more
+            user.UserPassword = hashed;
+            try
+            {
+                await _context.Database.ExecuteSqlCommandAsync(
+                    "UPDATE dbo.UserMaster SET UserPassword = {0}, ChangedDate = {1} WHERE UserId = {2}",
+                    hashed,
+                    now,
+                    user.UserId);
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return $"Password hash retained (db len={stored.Length}).";
+        }
 
         private static (string FirstName, string LastName) SplitFullName(string fullName)
         {
@@ -339,18 +480,38 @@ namespace Niga_Domain.API.Controllers
         }
 
         /// <summary>
-        /// Helper method to hash passwords (for future use when implementing password hashing)
+        /// M01 SEC-03.01 — Persist logout. Mobile contract (SEC-03.03): same endpoint path.
+        /// Prefer New-API denylist for full JWT revoke when cut over; classic records UserLoginStatus.
         /// </summary>
-        private string HashPassword(string password)
+        [HttpPost("Logout")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> Logout()
         {
-            using (var sha256 = SHA256.Create())
+            try
             {
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(hashedBytes);
+                var userIdClaim = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? User?.FindFirst("nameid")?.Value;
+                if (!long.TryParse(userIdClaim, out var userId) || userId <= 0)
+                    return Unauthorized(new { message = "Invalid token" });
+
+                var loginRow = await _context.UserLoginStatus
+                    .Where(x => x.UserId == userId && x.OutTime == null)
+                    .OrderByDescending(x => x.InTime)
+                    .FirstOrDefaultAsync();
+
+                if (loginRow != null)
+                {
+                    loginRow.OutTime = DateTime.UtcNow;
+                    loginRow.Satus = false;
+                    await _context.SaveChangesAsync();
+                }
+
+                return Ok(new { success = true, message = "Logged out" });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Logout failed" });
             }
         }
-
-
-
     }
 }

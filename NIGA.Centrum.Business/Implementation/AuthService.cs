@@ -1,4 +1,4 @@
-﻿using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 using System;
@@ -23,13 +23,19 @@ namespace NIGA.Centrum.Business.Implementation
         {
             var authModel = new AuthModel();
             errorResponseModel = new ErrorResponseModel();
-            var userEntity = _centrumContext.UserMaster.FirstOrDefault(x => x.UserName == userName && x.UserPassword == password && x.IsUserActivated==true);
-
-            if (userEntity == null)
+            var userEntity = _centrumContext.UserMaster.FirstOrDefault(x => x.UserName == userName && x.IsUserActivated == true);
+            if (userEntity == null || !UserPasswordHasher.Verify(password, userEntity.UserPassword))
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "User not  found. Please enter valid credentials";
                 return null;
+            }
+
+            if (!UserPasswordHasher.IsHashed(userEntity.UserPassword))
+            {
+                userEntity.UserPassword = UserPasswordHasher.Hash(password);
+                userEntity.ChangedDate = DateTime.UtcNow;
+                _centrumContext.SaveChanges();
             }
             var roleEntity = _centrumContext.RoleMaster.FirstOrDefault(x => x.RoleId == userEntity.RoleId);
             //To DO: Add multiple attempt logic

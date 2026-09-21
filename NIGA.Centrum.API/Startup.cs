@@ -24,12 +24,14 @@ namespace NIGA.Centrum.API
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment env)
         {
             Configuration = configuration;
+            ContentRootPath = env.ContentRootPath;
         }
 
         public IConfiguration Configuration { get; }
+        public string ContentRootPath { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -46,7 +48,17 @@ namespace NIGA.Centrum.API
                             .AllowAnyHeader();
                     });
             });
-            services.AddDbContext<NIGACentrumContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
+            var sqlOnly = new ConfigurationBuilder()
+                .SetBasePath(ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .Build();
+            var defaultConnection = sqlOnly.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrWhiteSpace(defaultConnection))
+            {
+                throw new InvalidOperationException(
+                    "Connection string 'DefaultConnection' was not found in appsettings.json.");
+            }
+            services.AddDbContext<NIGACentrumContext>(options => options.UseSqlServer(defaultConnection));
             services.AddMemoryCache();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             //services.AddSingleton<IConfiguration>(Configuration);
@@ -81,8 +93,14 @@ namespace NIGA.Centrum.API
                 };
             });
 
-            // Add authorization services
-            services.AddAuthorization();
+            // M02 W0 — Admin Portal policy for clinical masters mutate APIs (apply in W1+)
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy(NIGA.Centrum.Common.AdminAuthorizationPolicies.AdminPortal, policy =>
+                    policy.RequireAuthenticatedUser()
+                          .RequireAssertion(ctx =>
+                              NIGA.Centrum.Common.AdminAuthorizationPolicies.IsAdminPortalUser(ctx.User)));
+            });
 
             //Register all injecting interfaces with implemented class
             services.AddScoped<IUserService, UserService>();

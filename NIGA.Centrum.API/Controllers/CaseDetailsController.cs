@@ -3,22 +3,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NIGA.Centrum.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class CaseDetailsController : BaseAPIController
     {
         ICaseDetailsService _casedetailsService;
-        /// <summary>
-        /// Used to initialize controller and inject bodypart service
-        /// </summary>
-        /// <param name="bodypartService"></param>
+
         public CaseDetailsController(ICaseDetailsService casedetailsService)
         {
             _casedetailsService = casedetailsService;
@@ -76,6 +76,14 @@ namespace NIGA.Centrum.API.Controllers
 
                 if (patientAppointmentModel != null)
                 {
+                    if (!DoctorOwnership.IsAdminPortalUser(User))
+                    {
+                        var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
+                        var owned = patientAppointmentModel
+                            .Where(x => jwtDoctorId.HasValue && x.DoctorId == jwtDoctorId.Value)
+                            .ToList();
+                        return Ok(owned);
+                    }
                     return Ok(patientAppointmentModel);
                 }
                 return ReturnErrorResponse(errorResponseModel);

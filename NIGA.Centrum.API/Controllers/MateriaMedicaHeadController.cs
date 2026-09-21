@@ -6,6 +6,7 @@ using NIGA.Centrum.Model;
 using System;
 using System.ComponentModel.DataAnnotations;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -94,7 +95,8 @@ namespace NIGA.Centrum.API.Controllers
             [ProducesResponseType(typeof(string), 404)]
             [ProducesResponseType(typeof(string), 400)]
             [ProducesResponseType(typeof(string), 500)]
-            public IActionResult SaveMateriaMedicaHead(MateriaMedicaHeadMasterModel materiamedicheadModel)
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
+        public IActionResult SaveMateriaMedicaHead(MateriaMedicaHeadMasterModel materiamedicheadModel)
             {
                 ErrorResponseModel errorResponseModel = null;
                 try
@@ -124,7 +126,8 @@ namespace NIGA.Centrum.API.Controllers
             [ProducesResponseType(typeof(string), 404)]
             [ProducesResponseType(typeof(string), 400)]
             [ProducesResponseType(typeof(string), 500)]
-            public IActionResult DeleteMateriaMedicaHead(MateriaMedicaHeadMasterModel materiamedicaheadModel)
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
+        public IActionResult DeleteMateriaMedicaHead(MateriaMedicaHeadMasterModel materiamedicaheadModel)
             {
                 ErrorResponseModel errorResponseModel = null;
                 try
@@ -187,6 +190,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult UpdateDifferentialMateriaMedicadDefaultStatus(DifferentialMateriaMedicadDefaultStatusModel differentialMateriaMedicadDefaultStatus)
         {
             try

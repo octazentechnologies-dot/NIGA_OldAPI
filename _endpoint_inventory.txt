@@ -1,0 +1,459 @@
+TOTAL=336
+
+## AccountController (class auth: None) route=api/Account
+  POST   /api/Account/Login  -> Login  [None]
+
+## AdverseReactionController (class auth: Authorize) route=api/AdverseReaction
+  POST   /api/AdverseReaction/DeleteAdverseReaction  -> DeleteAdverseReaction  [Authorize]
+
+## AllopathicDrugController (class auth: Authorize) route=api/AllopathicDrug
+  GET    /api/AllopathicDrug/{allopathicDrugId}  -> GetAllopathicDrugById  [Authorize]
+  GET    /api/AllopathicDrug/GetAllopathicDrug  -> GetAllopathicDrug  [Authorize]
+  POST   /api/AllopathicDrug  -> SaveAllopathicDrug  [Authorize]
+  POST   /api/AllopathicDrug/DeleteAllopathicDrug  -> DeleteAllopathicDrug  [Authorize]
+  GET    /api/AllopathicDrug/GetAllopathicDrugByName/{allopathicDrugName}  -> GetAllopathicDrugByName  [Authorize]
+  GET    /api/AllopathicDrug/GetAllopathicDrugfordropdown  -> GetAllopathicDrugDDL  [Authorize]
+  GET    /api/AllopathicDrug/GetAllopathicDrugById/{allopathicDrugId}  -> GetAllopathicDrugById  [Authorize]
+
+## AppointmentHistoryNoteController (class auth: Authorize) route=api/AppointmentHistoryNote
+  GET    /api/AppointmentHistoryNote/{historyNoteId}  -> GetAppointmentHistoryNoteById  [Authorize]
+  POST   /api/AppointmentHistoryNote/SaveUpdateAppointmentHistoryNote  -> SaveUpdateAppointmentHistoryNote  [Authorize]
+  POST   /api/AppointmentHistoryNote/DeleteAppointmentHistoryNote  -> DeleteAppointmentHistoryNote  [Authorize]
+  GET    /api/AppointmentHistoryNote/GetAllAppointmentHistoryNotes  -> GetAllAppointmentHistoryNotes  [Authorize]
+
+## AuthorController (class auth: Authorize) route=api/Author
+  GET    /api/Author/GetAuthorById/{authorId}  -> GetAuthorById  [Authorize]
+  GET    /api/Author  -> GetAuthor  [Authorize]
+  GET    /api/Author/GetData  -> GetAuthorforRepertory  [Authorize]
+  POST   /api/Author  -> SaveAuthor  [Authorize]
+  POST   /api/Author/DeleteAuthor  -> DeleteAuthor  [Authorize]
+
+## BlogDetailController (class auth: None) route=api/BlogDetail
+  GET    /api/BlogDetail/GetBlogDetailById/{blogId}  -> GetBlogDetailById  [None]
+  GET    /api/BlogDetail/GetAllBlogDetail  -> GetAllBlogDetail  [None]
+  POST   /api/BlogDetail  -> SaveBlogDetail  [None]
+  POST   /api/BlogDetail/DeleteBlogDetail  -> DeleteBlogDetail  [None]
+
+## BodyPartController (class auth: Authorize) route=api/bodypart
+  GET    /api/bodypart/GetBodyPartById/{bodyPartId}  -> GetBodyPartById  [Authorize]
+  GET    /api/bodypart  -> GetBodyParts  [Authorize]
+  POST   /api/bodypart  -> SaveBodyPart  [Authorize]
+  POST   /api/bodypart/DeleteBodyPart  -> DeleteBodyPart  [Authorize]
+  GET    /api/bodypart/GetBodyPartsBySection/{SectionId}  -> GetBodyPartsBySection  [Authorize]
+
+## CaseDetailsController (class auth: Authorize) route=api/CaseDetails
+  POST   /api/CaseDetails  -> SaveCaseDetails  [Authorize]
+  GET    /api/CaseDetails/GetPatientBackHostoryById/{patientId}  -> GetPatientBackHostoryById  [Authorize]
+
+## ClinicalQueKeywordController (class auth: Authorize) route=api/ClinicalQueKeyword
+  GET    /api/ClinicalQueKeyword/GetClinicalQueKeywordById/{ClinicalQueKeywordId}  -> GetClinicalQueKeywordById  [Authorize]
+  GET    /api/ClinicalQueKeyword  -> GetClinicalQueKeyword  [Authorize]
+  POST   /api/ClinicalQueKeyword  -> SaveClinicalQueKeyword  [Authorize]
+  POST   /api/ClinicalQueKeyword/DeleteClinicalQueKeyword  -> DeleteClinicalQueKeyword  [Authorize]
+
+## ClinicalQuestionsController (class auth: Authorize) route=api/clinicalquestions
+  GET    /api/clinicalquestions/{questionsId}  -> GetClinicalQuestionsById  [Authorize]
+  GET    /api/clinicalquestions  -> GetClinicalQuestions  [Authorize]
+  POST   /api/clinicalquestions  -> SaveClinicalQuestions  [Authorize]
+  POST   /api/clinicalquestions/DeleteClinicalQuestions  -> DeleteClinicalQuestions  [Authorize]
+  GET    /api/clinicalquestions/GetClinicalQuestionsByGroup/{QuestionGroupId}  -> GetClinicalQuestionsByGroup  [Authorize]
+  GET    /api/clinicalquestions/GetQuestionsBySelectedId  -> GetQuestionsBySelectedId  [Authorize]
+  GET    /api/clinicalquestions/GetClinicalQuestionBodyPartList  -> GetClinicalQuestionBodyPartList  [Authorize]
+  GET    /api/clinicalquestions/GetClinicalQuestionBodyPartDataById  -> GetClinicalQuestionBodyPartDataById  [Authorize]
+  POST   /api/clinicalquestions/AddEditClinicalQuestionsBodyPart  -> AddEditClinicalQuestionsBodyPart  [Authorize]
+  POST   /api/clinicalquestions/DeleteQuestionBodyPartData  -> DeleteQuestionBodyPartData  [Authorize]
+  POST   /api/clinicalquestions/DeleteQuestionBodyPartRubricData  -> DeleteClinicalRubricData  [Authorize]
+  POST   /api/clinicalquestions/GetClinicalQuestionsKeyWordBodyPart  -> GetClinicalQuestionsKeyWordBodyPart  [Authorize]
+  POST   /api/clinicalquestions/GetClinicalRubricData  -> GetClinicalRubricData  [Authorize]
+
+## ClipboardRubricsController (class auth: Authorize) route=api/clipboardRubrics
+  GET    /api/clipboardRubrics  -> GetClipboardRubrics  [Authorize]
+  POST   /api/clipboardRubrics  -> SaveClipboardRubrics  [Authorize]
+  GET    /api/clipboardRubrics/GetClipboardRubricsPatientId/{PatientId}  -> GetClipboardRubricsPatientId  [Authorize]
+  POST   /api/clipboardRubrics/DeleteClipboardRubrics  -> DeleteClipboardRubrics  [Authorize]
+  POST   /api/clipboardRubrics/GetRubricsDetailsBySubsectionId  -> GetRubricsDetailsBySubsectionId  [Authorize]
+  POST   /api/clipboardRubrics/GetCommanUnCommanRubricsDetailsBySubsectionId  -> GetCommanUnCommanRubricsDetailsBySubsectionId  [Authorize]
+  POST   /api/clipboardRubrics/GetRepertorizarionRemedy  -> GetRepertorizarionRemedy  [Authorize]
+  POST   /api/clipboardRubrics/GetCommanUnCommanRubricsDetails  -> GetCommanUnCommanRubricsDetails  [Authorize]
+  POST   /api/clipboardRubrics/GetEliminationData  -> GetEliminationData  [Authorize]
+
+## CountryController (class auth: None) route=api/country
+  GET    /api/country/{countryId}  -> GetCountryById  [None]
+  GET    /api/country  -> GetCountries  [None]
+
+## DiagnosisController (class auth: Authorize) route=api/diagnosis
+  GET    /api/diagnosis/{diagnosisId}  -> GetDiagnosisById  [Authorize]
+  GET    /api/diagnosis/GetDiagnosis  -> GetDiagnosis  [Authorize]
+  POST   /api/diagnosis  -> SaveDiagnosis  [Authorize]
+  POST   /api/diagnosis/DeleteDiagnosis  -> DeleteDiagnosis  [Authorize]
+  POST   /api/diagnosis/DeleteDiagnosisRubric  -> DeleteDiagnosisRubric  [Authorize]
+  POST   /api/diagnosis/DiagnosisSearch  -> DiagnosisSearch  [Authorize]
+  POST   /api/diagnosis/GetDiagnosisKeywordByTab  -> GetDiagnosisKeywordByTab  [Authorize]
+  POST   /api/diagnosis/GetRubricByKeywordID  -> GetRubricByKeywordID  [Authorize]
+  GET    /api/diagnosis/GetDiagnosisForClinicalPattern  -> GetDiagnosisDDL  [Authorize]
+  POST   /api/diagnosis/GetThrepoticByDiagonisID  -> GetThrepoticByDiagonisID  [Authorize]
+
+## DiagnosisGroupController (class auth: Authorize) route=api/diagnosisgroup
+  GET    /api/diagnosisgroup/{diagnosisgroupId}  -> GetDiagnosisGroupById  [Authorize]
+  GET    /api/diagnosisgroup  -> GetDiagnosisGroups  [Authorize]
+  POST   /api/diagnosisgroup  -> SaveDiagnosisGroups  [Authorize]
+  POST   /api/diagnosisgroup/DeleteDiagnosisGroup  -> DeleteDiagnosisGroup  [Authorize]
+  GET    /api/diagnosisgroup/GetDiagnosis  -> GetDiagnosis  [Authorize]
+
+## DiagnosisSystemController (class auth: Authorize) route=api/DiagnosisSystem
+  GET    /api/DiagnosisSystem/{diagnosisSystemId}  -> GetDiagnosisSystemById  [Authorize]
+  GET    /api/DiagnosisSystem/GetDiagnosisSystem  -> GetDiagnosisSystem  [Authorize]
+  POST   /api/DiagnosisSystem/SaveDiagnosisSystem  -> SaveDiagnosisSystem  [Authorize]
+  POST   /api/DiagnosisSystem/DeleteDiagnosisSystem  -> DeleteDiagnosisSystem  [Authorize]
+
+## DiagnosisTherapeuticsDetailController (class auth: Authorize) route=api/DiagnosisTherapeuticsDetail
+  GET    /api/DiagnosisTherapeuticsDetail/{diagnosisTherapeuticsDetailId}  -> GetDiagnosisTherapeuticsDetailById  [Authorize]
+  GET    /api/DiagnosisTherapeuticsDetail/GetDiagnosisTherapeuticsDetail  -> GetDiagnosisTherapeuticsDetail  [Authorize]
+  POST   /api/DiagnosisTherapeuticsDetail/SaveDiagnosisTherapeuticsDetail  -> SaveDiagnosisTherapeuticsDetail  [Authorize]
+  POST   /api/DiagnosisTherapeuticsDetail/DeleteDiagnosisTherapeuticsDetail  -> DeleteDiagnosisTherapeuticsDetail  [Authorize]
+
+## DoctorDashBoardController (class auth: Authorize) route=api/doctorDashBoard
+  POST   /api/doctorDashBoard/GetCountApp  -> GetPatientAppCount  [Authorize]
+  POST   /api/doctorDashBoard  -> GetPatientAppUser  [Authorize]
+
+## DropdownListController (class auth: Authorize) route=api/DropdownList
+  GET    /api/DropdownList/GetAllThermalDDL  -> GetAllThermalDDL  [Authorize]
+  GET    /api/DropdownList/GetAuthorforMateriaMedicaDDL  -> GetAuthorforMateriaMedicaDDL  [Authorize]
+  GET    /api/DropdownList/GetPatientLabTestDDL  -> GetPatientLabTestDDL  [Authorize]
+  GET    /api/DropdownList/GetQuestionGroupDDL  -> GetQuestionGroupDDL  [Authorize]
+  GET    /api/DropdownList/GetQuestionSectionsDDL  -> GetQuestionSectionsDDL  [Authorize]
+  GET    /api/DropdownList/GetQuestionSubGroupDDL  -> GetQuestionSubGroupDDL  [Authorize]
+  GET    /api/DropdownList/GetBodyPartDDL/{sectionId}  -> GetBodyPartDDL  [Authorize]
+  GET    /api/DropdownList/GetSubQuestionGroupByQGIDQSIDDDL/{questionGroupId}/{questionSectionId}  -> GetSubQuestionGroupByQGIDQSIDDDL  [Authorize]
+  GET    /api/DropdownList/GetSubsectionBySection/{sectionId}  -> GetSubsectionBySection  [Authorize]
+
+## DrugGroupController (class auth: Authorize) route=api/DrugGroup
+  GET    /api/DrugGroup/{drugSystemId}  -> GetDrugGroupById  [Authorize]
+  GET    /api/DrugGroup/GetDrugGroup  -> GetDrugGroup  [Authorize]
+  POST   /api/DrugGroup  -> SaveDrugGroup  [Authorize]
+  POST   /api/DrugGroup/DeleteDrugGroup  -> DeleteDrugGroup  [Authorize]
+
+## DrugSystemController (class auth: Authorize) route=api/DrugSystem
+  GET    /api/DrugSystem/{drugSystemId}  -> GetDrugSystemById  [Authorize]
+  GET    /api/DrugSystem/GetDrugSystem  -> GetDrugSystem  [Authorize]
+  POST   /api/DrugSystem  -> SaveDrugSystem  [Authorize]
+  POST   /api/DrugSystem/DeleteDrugSystem  -> DeleteDrugSystem  [Authorize]
+
+## EnquiryDetailController (class auth: None) route=api/EnquiryDetail
+  GET    /api/EnquiryDetail/GetEnquiryDetailById/{enquiryId}  -> GetEnquiryDetailById  [None]
+  GET    /api/EnquiryDetail/GetAllEnquiryDetails  -> GetAllEnquiryDetails  [None]
+  POST   /api/EnquiryDetail  -> SaveEnquiryDetail  [None]
+  POST   /api/EnquiryDetail/DeleteEnquiryDetail  -> DeleteEnquiryDetail  [None]
+
+## GenderController (class auth: Authorize) route=api/gender
+  GET    /api/gender/{genderId}  -> GetGenderById  [Authorize]
+
+## IntensityController (class auth: Authorize) route=api/intensity
+  GET    /api/intensity/{intensityId}  -> GetIntensityById  [Authorize]
+  GET    /api/intensity  -> GetIntensities  [Authorize]
+  POST   /api/intensity  -> SaveIntensity  [Authorize]
+  POST   /api/intensity/DeleteIntensity  -> DeleteIntensity  [Authorize]
+
+## LanguageMasterController (class auth: Authorize) route=api/LanguageMaster
+  GET    /api/LanguageMaster  -> GetLanguage  [Authorize]
+  POST   /api/LanguageMaster  -> SaveLanguage  [Authorize]
+  POST   /api/LanguageMaster/DeleteLanguage  -> DeleteLanguage  [Authorize]
+  GET    /api/LanguageMaster/GetLanguageById/{languageId}  -> GetLanguageById  [Authorize]
+
+## LoginController (class auth: None) route=api/Login
+  POST   /api/Login/authenticate  -> Authenticate  [AllowAnonymous]
+
+## MastersAPIController (class auth: Authorize) route=api/mastersAPI
+  GET    /api/mastersAPI/GetCountries  -> GetCountries  [Authorize]
+  GET    /api/mastersAPI/GetPackages  -> GetPackages  [Authorize]
+  GET    /api/mastersAPI/GetQualifications  -> GetQualifications  [Authorize]
+  GET    /api/mastersAPI/GetDiagnosisGroups  -> GetDiagnosisGroups  [Authorize]
+  GET    /api/mastersAPI/GetDiagnosis  -> GetDiagnosis  [Authorize]
+  GET    /api/mastersAPI/GetSections  -> GetSections  [Authorize]
+  GET    /api/mastersAPI/GetSubSections  -> GetSubSections  [Authorize]
+  GET    /api/mastersAPI/GetSubsectionBySection/{sectionId}  -> GetSubsectionBySection  [Authorize]
+  POST   /api/mastersAPI/GetRemedies  -> GetRemedies  [Authorize]
+  GET    /api/mastersAPI/GetIntensities  -> GetIntensities  [Authorize]
+  GET    /api/mastersAPI/GetRemedyGrades  -> GetRemedyGrades  [Authorize]
+  GET    /api/mastersAPI/GetBodyParts  -> GetBodyParts  [Authorize]
+  GET    /api/mastersAPI/GetPartLocations  -> GetPartLocations  [Authorize]
+  GET    /api/mastersAPI/GetQuestionSection  -> GetQuestionSections  [Authorize]
+  GET    /api/mastersAPI/getAllChiefComplaints  -> getAllChiefComplaints  [Authorize]
+  GET    /api/mastersAPI/GetClinicalQuestions  -> GetClinicalQuestions  [Authorize]
+  GET    /api/mastersAPI/GetQuestionGroup  -> GetQuestionGroup  [Authorize]
+  GET    /api/mastersAPI/GetSubSectionByBodyPart/{bodyPartId}  -> GetSubSectionByBodyPart  [Authorize]
+  GET    /api/mastersAPI/SearchSubSections/{keyword}  -> SearchSubSections  [Authorize]
+  GET    /api/mastersAPI/GetDoctors  -> GetDoctors  [Authorize]
+  GET    /api/mastersAPI/GetModuleMaster  -> GetModuleMaster  [Authorize]
+  GET    /api/mastersAPI/GetFirmDetails  -> GetFirmDetails  [Authorize]
+  GET    /api/mastersAPI/GetDoctorDetails/{userId}  -> GetDoctorDetails  [Authorize]
+  GET    /api/mastersAPI/SubSectionsBySearch/{keyword}  -> GetSubSectionBySearch  [Authorize]
+  GET    /api/mastersAPI/SubsectionBySectionWithPagination/{sectionId}/{keyword}  -> GetSubsectionBySectionWithPagination  [Authorize]
+
+## MateriaMedicaHeadController (class auth: Authorize) route=api/MateriaMedicaHead
+  GET    /api/MateriaMedicaHead/{materiamedicaheadId}  -> GetMateriaMedicaHeadById  [Authorize]
+  GET    /api/MateriaMedicaHead/GetMateriaMedicaHead  -> GetMateriaMedicaHead  [Authorize]
+  POST   /api/MateriaMedicaHead  -> SaveMateriaMedicaHead  [Authorize]
+  POST   /api/MateriaMedicaHead/DeleteMateriaMedicaHead  -> DeleteMateriaMedicaHead  [Authorize]
+  GET    /api/MateriaMedicaHead/GetMateriaMedicaHeadByAuthorId/{authorId}  -> GetMateriaMedicaHeadByAuthorId  [Authorize]
+  POST   /api/MateriaMedicaHead/UpdateDifferentialMateriaMedicadDefaultStatus  -> UpdateDifferentialMateriaMedicadDefaultStatus  [Authorize]
+
+## MateriaMedicaMasterController (class auth: Authorize) route=api/MateriaMedicaMaster
+  GET    /api/MateriaMedicaMaster/{materiamedicaId}  -> GetMateriaMedicaById  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetMateriaMedica  -> GetMateriaMedica  [Authorize]
+  POST   /api/MateriaMedicaMaster  -> SaveMateriaMedica  [Authorize]
+  POST   /api/MateriaMedicaMaster/DeleteMateriaMedica  -> DeleteMateriaMedica  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetMateriaMedicaHeadByAuthorId/{authorId}  -> GetMateriaMedicaAuthor  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetMateriaMedicaRemedy/{remedyId}  -> GetMateriaMedicaRemedy  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetMateriaMedicaHead/{materiamedicaheadId}  -> GetMateriaMedicaHead  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetAuthorDDL  -> GetAuthorDDL  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetRemedyDDL  -> GetRemedyDDL  [Authorize]
+  GET    /api/MateriaMedicaMaster/GetMateriaMedicaByAuthorRemedy  -> GetMateriaMedicaByAuthorRemedy  [Authorize]
+
+## MateriaMedicaRemediesDetailsController (class auth: Authorize) route=api/MateriaMedicaRemediesDetails
+  GET    /api/MateriaMedicaRemediesDetails/GetMateriaMedicaRemediesDetails  -> GetMateriaMedicaRemediesDetails  [Authorize]
+
+## MenuMasterController (class auth: Authorize) route=api/menuMaster
+  GET    /api/menuMaster/{menuId}  -> GetMenuById  [Authorize]
+  GET    /api/menuMaster/GetMenuMaster  -> GetMenuMaster  [Authorize]
+  POST   /api/menuMaster  -> SaveMenuMaster  [Authorize]
+  POST   /api/menuMaster/DeleteMenuMaster  -> DeleteMenuMaster  [Authorize]
+  GET    /api/menuMaster/GetMenuByUserId/{userId}  -> GetMenuByUserId  [Authorize]
+
+## MeteriaMedicaDetailsController (class auth: Authorize) route=api/MeteriaMedicaDetails
+  GET    /api/MeteriaMedicaDetails/{materiamedicadetailId}  -> GetMateriaMedicaDetailsById  [Authorize]
+  GET    /api/MeteriaMedicaDetails/GetMateriaMedicaDetails  -> GetMateriaMedicaDetails  [Authorize]
+  POST   /api/MeteriaMedicaDetails  -> SaveMateriaMedicaDetails  [Authorize]
+  POST   /api/MeteriaMedicaDetails/DeleteMateriaMedicaDetails  -> DeleteMateriaMedicaDetails  [Authorize]
+  GET    /api/MeteriaMedicaDetails/GetMateriaMedicaDetail/{materiamedicaId}  -> GetMateriaMedicaDetail  [Authorize]
+
+## MonogramController (class auth: Authorize) route=api/Monogram
+  GET    /api/Monogram/MonogramById  -> GetMonoGramById  [Authorize]
+  GET    /api/Monogram/GetallMonogram  -> GetMonogram  [Authorize]
+  POST   /api/Monogram  -> SaveClinicalQuestions  [Authorize]
+  POST   /api/Monogram/DeleteMonogram  -> DeleteMonogram  [Authorize]
+
+## NewsCategoryController (class auth: None) route=api/NewsCategory
+  GET    /api/NewsCategory/GetNewsCategoryById/{newscategoryId}  -> GetNewsCategoryById  [None]
+  GET    /api/NewsCategory/GetAllNewsCategory  -> GetAllNewsCategory  [None]
+  POST   /api/NewsCategory/SaveNewsCategory  -> SaveNewsCategory  [None]
+  POST   /api/NewsCategory/DeleteNewsCategory  -> DeleteNewsCategory  [None]
+
+## NewsDetailController (class auth: Authorize) route=api/NewsDetail
+  GET    /api/NewsDetail/GetNewsDetailsbyId/{newsId}  -> GetNewsDetailsbyId  [Authorize]
+  GET    /api/NewsDetail/GetAllNewsDetails  -> GetAllNewsDetails  [Authorize]
+  POST   /api/NewsDetail/SaveNewsDetails  -> SaveNewsDetails  [Authorize]
+  POST   /api/NewsDetail/DeleteNewsDetails  -> DeleteNewsDetails  [Authorize]
+  GET    /api/NewsDetail/GetNewsDetailsbyCategoryId/{newscategoryId}  -> GetNewsDetailsbyCategoryId  [Authorize]
+
+## OrderController (class auth: Authorize) route=api/Order
+  POST   /api/Order/GenerateOrderId  -> GenerateOrder  [Authorize]
+
+## OtherSideEffectController (class auth: Authorize) route=api/OtherSideEffect
+  POST   /api/OtherSideEffect/DeleteOtherSideEffect  -> DeleteOtherSideEffect  [Authorize]
+
+## PackageController (class auth: Authorize) route=api/package
+  GET    /api/package/{packageId}  -> GetGenderById  [Authorize]
+  GET    /api/package  -> GetPackages  [Authorize]
+  POST   /api/package  -> SavePackage  [Authorize]
+  POST   /api/package/DeletePackage  -> DeletePackage  [Authorize]
+  GET    /api/package/GetPackageTopup  -> GetPackageTopup  [Authorize]
+  POST   /api/package/SavePackageTopup  -> SavePackageTopup  [Authorize]
+
+## PaginationController (class auth: Authorize) route=api/Pagination
+  GET    /api/Pagination/GetSubSectionBySectionIdAndQueryString  -> GetSubSectionBySectionIdAndQueryString  [Authorize]
+  GET    /api/Pagination/GetSubSectionBySectionIdAndQueryString1  -> GetSubSectionBySectionIdAndQueryString1  [Authorize]
+  GET    /api/Pagination/GetSubsectionBySectionIdOrQueryString  -> GetSubsectionBySectionIdOrQueryString  [Authorize]
+  GET    /api/Pagination/GetDrugSystem  -> GetDrugSystem  [Authorize]
+  GET    /api/Pagination/GetDrugGroup  -> GetDrugGroup  [Authorize]
+  GET    /api/Pagination/GetAllopathicDrug  -> GetAllopathicDrug  [Authorize]
+  GET    /api/Pagination/GetLanguage  -> GetLanguage  [Authorize]
+  GET    /api/Pagination/GetQuestionSections  -> GetQuestionSections  [Authorize]
+  GET    /api/Pagination/GetQuestionGroupExistance  -> GetQuestionGroupExistance  [Authorize]
+  GET    /api/Pagination/GetQuestionSubGroup  -> GetQuestionSubGroup  [Authorize]
+  GET    /api/Pagination/GetAuthor  -> GetAuthor  [Authorize]
+  GET    /api/Pagination/GetRemedies  -> GetRemedies  [Authorize]
+  GET    /api/Pagination/GetMateriaMedica  -> GetMateriaMedica  [Authorize]
+  GET    /api/Pagination/GetMateriaMedicaHead  -> GetMateriaMedicaHead  [Authorize]
+  GET    /api/Pagination/GetIntensities  -> GetIntensities  [Authorize]
+  GET    /api/Pagination/GetDiagnosisGroups  -> GetDiagnosisGroups  [Authorize]
+  GET    /api/Pagination/GetSections  -> GetSections  [Authorize]
+  GET    /api/Pagination/GetDiagnosisSystem  -> GetDiagnosisSystem  [Authorize]
+  GET    /api/Pagination/GetPartLocations  -> GetPartLocations  [Authorize]
+  GET    /api/Pagination/GetBodyParts  -> GetBodyParts  [Authorize]
+  GET    /api/Pagination/GetClinicalQuestionBodyPart  -> GetClinicalQuestionBodyPart  [Authorize]
+  GET    /api/Pagination/GetDiagnosisTherapeuticsDetails  -> GetDiagnosisTherapeuticsDetails  [Authorize]
+  GET    /api/Pagination/GetDiagnosis  -> GetDiagnosis  [Authorize]
+  GET    /api/Pagination/GetPatientLabTests  -> GetPatientLabTests  [Authorize]
+  GET    /api/Pagination/GetQualifications  -> GetQualifications  [Authorize]
+  GET    /api/Pagination/GetUser  -> GetUser  [Authorize]
+  GET    /api/Pagination/GetAllNewsDetails  -> GetAllNewsDetails  [Authorize]
+  GET    /api/Pagination/GetAllBlogDetail  -> GetAllBlogDetail  [Authorize]
+  GET    /api/Pagination/GetSubSectionForRubric  -> GetSubSectionForRubric  [Authorize]
+  GET    /api/Pagination/GetRepertorizarionRemedyForAccordion  -> GetRepertorizarionRemedyForAccordion  [Authorize]
+
+## PartLocationController (class auth: Authorize) route=api/partlocation
+  GET    /api/partlocation/{partlocationId}  -> GetPartLocationById  [Authorize]
+  GET    /api/partlocation/GetPartLocations  -> GetPartLocations  [Authorize]
+  POST   /api/partlocation  -> SavePartLocation  [Authorize]
+  POST   /api/partlocation/DeletePartLocation  -> DeletePartLocation  [Authorize]
+
+## PathologyController (class auth: Authorize) route=api/Pathology
+  GET    /api/Pathology/GetPathologyById/{pathologyId}  -> GetPathologyById  [Authorize]
+  GET    /api/Pathology/GetPathology  -> GetPathology  [Authorize]
+  POST   /api/Pathology  -> SavePathology  [Authorize]
+  POST   /api/Pathology/DeletePathology  -> DeletePathology  [Authorize]
+
+## PatientAppointmentController (class auth: Authorize) route=api/patientApp
+  GET    /api/patientApp/{patientAppId}  -> GetPatientAppById  [Authorize]
+  POST   /api/patientApp  -> SavePatientApp  [Authorize]
+  GET    /api/patientApp/GetCasesByUser/{UserId}  -> GetCasesByUser  [Authorize]
+  POST   /api/patientApp/UpdateAppointmentStatus  -> UpdateAppointmentStatus  [Authorize]
+
+## PatientController (class auth: Authorize) route=api/patient
+  GET    /api/patient/{UserId}  -> GetCases  [Authorize]
+  POST   /api/patient  -> Post  [Authorize]
+  GET    /api/patient/GetPatientDetails/{PatientID}/{caseId}  -> GetPatientDetails  [Authorize]
+  POST   /api/patient/SaveComplaints  -> SaveComplaints  [Authorize]
+  GET    /api/patient/GetPatientDetailsById/{patientId}  -> GetPatientDetailsById  [Authorize]
+  POST   /api/patient/Deletepatient  -> Deletepatient  [Authorize]
+
+## PatientLabController (class auth: Authorize) route=api/PatientLab
+  GET    /api/PatientLab/GetAllLabTests  -> GetAllLabTests  [Authorize]
+  GET    /api/PatientLab/GetPatientLabOrder  -> GetPatientLabOrder  [Authorize]
+  GET    /api/PatientLab/GetPatientLabOrder/{patientId}  -> GetPatientLabOrder  [Authorize]
+  GET    /api/PatientLab/GetPatientLabEntry  -> GetPatientLabEntry  [Authorize]
+  GET    /api/PatientLab/GetPatientLabEntry/{patientId}  -> GetPatientLabEntry  [Authorize]
+  POST   /api/PatientLab/SavePatientLabOrder  -> SavePatientLabOrder  [Authorize]
+  POST   /api/PatientLab/SavePatientLabEntry  -> SavePatientLabEntry  [Authorize]
+
+## PatientLabTestController (class auth: Authorize) route=api/PatientLabTest
+  GET    /api/PatientLabTest/GetPatientLabTest  -> GetPatientLabTest  [Authorize]
+  POST   /api/PatientLabTest/AddEditPatientLabTest  -> AddEditPatientLabTest  [Authorize]
+  GET    /api/PatientLabTest/GetPatientLabTestById/{patientLabTestId}  -> GetPatientLabTestById  [Authorize]
+  POST   /api/PatientLabTest/DeletePatientLabTest/{patientLabTestId}  -> DeletePatientLabTest  [Authorize]
+
+## PrescriptionController (class auth: Authorize) route=api/Prescription
+  POST   /api/Prescription/SavePrescriptionDetail  -> SavePrescriptionDetail  [Authorize]
+  GET    /api/Prescription/PrescriptionRubricDetail  -> GetPrescriptionRubricDetail  [Authorize]
+  GET    /api/Prescription/PrescriptionRemedyDetail  -> GetPrescriptionRemedyDetail  [Authorize]
+  POST   /api/Prescription/GetPrescriptionRemedy  -> GetPrescriptionRemedy  [Authorize]
+
+## QualificationController (class auth: Authorize) route=api/qualification
+  GET    /api/qualification/{qualificationId}  -> GetQualificationById  [Authorize]
+  GET    /api/qualification/GetQualifications  -> GetQualifications  [Authorize]
+  POST   /api/qualification  -> SaveQualification  [Authorize]
+  POST   /api/qualification/DeleteQualification  -> DeleteQualification  [Authorize]
+
+## QuestionGroupController (class auth: Authorize) route=api/questiongroup
+  GET    /api/questiongroup/{questiongroupId}  -> GetQuestionGroupById  [Authorize]
+  GET    /api/questiongroup  -> GetQuestionGroup  [Authorize]
+  POST   /api/questiongroup  -> SaveQuestionGroup  [Authorize]
+  POST   /api/questiongroup/DeleteQuestionGroup  -> DeleteQuestionGroup  [Authorize]
+  GET    /api/questiongroup/GetQuestionGroupExistance  -> GetQuestionGroupExistance  [Authorize]
+  GET    /api/questiongroup/GetQuestionGroupByExistanceId/{QuestionSectionId}  -> GetQuestionGroupByExistanceId  [Authorize]
+
+## QuestionSectionController (class auth: Authorize) route=api/questionsection
+  GET    /api/questionsection/{questionsectionId}  -> GetQuestionSectionById  [Authorize]
+  GET    /api/questionsection  -> GetQuestionSections  [Authorize]
+  POST   /api/questionsection  -> SaveQuestionSection  [Authorize]
+  POST   /api/questionsection/DeleteQuestionSection  -> DeleteQuestionSection  [Authorize]
+
+## QuestionSubGroupController (class auth: Authorize) route=api/QuestionSubGroup
+  GET    /api/QuestionSubGroup/{questionSubgroupId}  -> GetQuestionSubGroupById  [Authorize]
+  GET    /api/QuestionSubGroup/GetQuestionSubGroup  -> GetQuestionSubGroup  [Authorize]
+  POST   /api/QuestionSubGroup  -> SaveQuestionSubGroup  [Authorize]
+  POST   /api/QuestionSubGroup/DeleteQuestionSubGroup  -> DeleteQuestionSubGroup  [Authorize]
+
+## RemedyController (class auth: Authorize) route=api/remedy
+  GET    /api/remedy/{remedyId}  -> GetRemedyById  [Authorize]
+  GET    /api/remedy/GetRemedies  -> GetRemedies  [Authorize]
+  POST   /api/remedy  -> SaveRemedy  [Authorize]
+  POST   /api/remedy/DeleteRemedy  -> DeleteRemedy  [Authorize]
+  GET    /api/remedy/GetRemediesBySubSection/{subSectionId}  -> GetRemediesBySubSection  [Authorize]
+  GET    /api/remedy/GetCommonUnCommonRemedyBySection/{subSectionId}  -> GetCommonUnCommonRemedyBySection  [Authorize]
+
+## RemedyGradeController (class auth: Authorize) route=api/remedygrade
+  GET    /api/remedygrade/{gradeId}  -> GetRemedyGradeById  [Authorize]
+  GET    /api/remedygrade/GetRemedyGrades  -> GetRemedyGrades  [Authorize]
+  POST   /api/remedygrade  -> SaveRemedyGrade  [Authorize]
+  POST   /api/remedygrade/DeleteRemedyGrade  -> DeleteRemedyGrade  [Authorize]
+
+## RepertorizationPageController (class auth: Authorize) route=api/RepertorizationPage
+  GET    /api/RepertorizationPage/GetMateriaMedicaHeadingbyAuthorId/{authorId}  -> GetMateriaMedicaHeadingbyAuthorId  [Authorize]
+  POST   /api/RepertorizationPage/GetDifferentialMateriaMedica  -> GetDifferentialMateriaMedica  [Authorize]
+
+## RoleDetailsController (class auth: Authorize) route=api/roleDetails
+  GET    /api/roleDetails/{recordId}  -> GetRoleDetailsById  [Authorize]
+  GET    /api/roleDetails/GetRoleDetails  -> GetRoleDetails  [Authorize]
+  POST   /api/roleDetails  -> SaveRoleDetails  [Authorize]
+  POST   /api/roleDetails/DeleteRoleDetails  -> DeleteRoleDetails  [Authorize]
+
+## RoleMasterController (class auth: Authorize) route=api/roleMaster
+  GET    /api/roleMaster/{roleId}  -> GetRoleById  [Authorize]
+  GET    /api/roleMaster/GetRoleMaster  -> GetRoleMaster  [Authorize]
+  POST   /api/roleMaster  -> SaveRoleMaster  [Authorize]
+  POST   /api/roleMaster/DeleteRoleMaster  -> DeleteRoleMaster  [Authorize]
+
+## RubricRemedyController (class auth: Authorize) route=api/RubricRemedy
+  POST   /api/RubricRemedy  -> SaveRemedyDetails  [Authorize]
+  GET    /api/RubricRemedy/GetRubricRemedyDetails/{RemedyId}  -> GetRubricRemedyDetails  [Authorize]
+  GET    /api/RubricRemedy/GetRemedyCounts/{subSectionId}  -> GetRemedyCounts  [Authorize]
+  GET    /api/RubricRemedy/GetRubricList/  -> GetRubricList  [Authorize]
+  GET    /api/RubricRemedy/GetGradeDetails/{subSectionId:int}  -> GetGradeDetails  [Authorize]
+  GET    /api/RubricRemedy/GetRemedyDetailsToEdit/{subSectionId}/{grade}  -> GetRemedyDetailsToEdit  [Authorize]
+  GET    /api/RubricRemedy/GetSubSections/{sectionId}  -> GetSubSections  [Authorize]
+  GET    /api/RubricRemedy/GetRubricRemedyBySectionIdGreadId/{subSectionId}/{gradeId}  -> GetRubricRemedyBySectionIdGreadId  [Authorize]
+  POST   /api/RubricRemedy/SaveUpdateRubricRemedy  -> SaveUpdateRubricRemedy  [Authorize]
+  POST   /api/RubricRemedy/DeleteRubricRemedyAuthor  -> DeleteRubricRemedyAuthor  [Authorize]
+  GET    /api/RubricRemedy/UpdateIsSmallRubric/{rubricRemedyId}/{isSmallRubric}  -> UpdateIsSmallRubric  [Authorize]
+  GET    /api/RubricRemedy/UpdateIsConfirmationRubric/{rubricRemedyId}/{isConformationRubric}  -> UpdateIsConfirmationRubric  [Authorize]
+  GET    /api/RubricRemedy/GetGradeDetailsWithoutGrade/{subSectionId:int}  -> GetGradeDetailsWithoutGrade  [Authorize]
+  GET    /api/RubricRemedy/GetRubricDetails/{subSectionId:int}  -> GetRubricDetails  [Authorize]
+
+## SectionController (class auth: Authorize) route=api/section
+  GET    /api/section/{sectionId}  -> GetSectionById  [Authorize]
+  GET    /api/section  -> GetAllSections  [Authorize]
+  POST   /api/section  -> SaveSection  [Authorize]
+  POST   /api/section/DeleteSection  -> DeleteSection  [Authorize]
+  GET    /api/section/GetAllRemedyByFilter  -> getAllRemedyByFilter  [Authorize]
+
+## SeriousSideEffectController (class auth: Authorize) route=api/SeriousSideEffect
+  POST   /api/SeriousSideEffect/DeleteSeriousSideEffect  -> DeleteSeriousSideEffect  [Authorize]
+
+## StateController (class auth: Authorize) route=api/state
+  GET    /api/state/{stateId}  -> GetStatteById  [Authorize]
+  GET    /api/state/GetStates  -> GetStates  [Authorize]
+
+## SubSectionController (class auth: Authorize) route=api/subsection
+  GET    /api/subsection/{subsectionId}  -> GetSubSectionById  [Authorize]
+  GET    /api/subsection/GetSubSections/{sectionId}  -> GetSubSections  [Authorize]
+  POST   /api/subsection  -> SaveSubSection  [Authorize]
+  POST   /api/subsection/DeleteSubSection  -> DeleteSubSection  [Authorize]
+  POST   /api/subsection/GetSubSectionsBySection  -> GetSubSectionsBySection  [Authorize]
+  GET    /api/subsection/GetSubSections  -> GetSubSections  [Authorize]
+  GET    /api/subsection/GetSubSectionsByDate/{userId}  -> GetSubSectionsByDate  [Authorize]
+  POST   /api/subsection/DeleteSubSectionLanguageDetails  -> DeleteSubSectionLanguageDetails  [Authorize]
+  POST   /api/subsection/DeleteReferenceRubricDetails  -> DeleteReferenceRubricDetails  [Authorize]
+  GET    /api/subsection/GetSubSectionsWithPagination/{sectionId}  -> GetSubSectionsWithPagination  [Authorize]
+  GET    /api/subsection/GetSubSectionWithChildrenCount/{subsectionId}  -> GetSubSectionWithChildrenCount  [Authorize]
+  GET    /api/subsection/GetMainParentSubSectionsWithChildCount/{sectionId}  -> GetMainParentSubSectionsWithChildCount  [Authorize]
+  POST   /api/subsection/UpdateMainParentSubsection/{subsectionId}  -> UpdateMainParentSubsection  [Authorize]
+  GET    /api/subsection/search  -> Search  [Authorize]
+  GET    /api/subsection/SearchBySection  -> SearchBySection  [Authorize]
+  GET    /api/subsection/SearchGlobal  -> SearchGlobal  [Authorize]
+  GET    /api/subsection/SearchGlobalPaged  -> SearchGlobalPaged  [Authorize]
+  GET    /api/subsection/SearchBySectionPaged  -> SearchBySectionPaged  [Authorize]
+
+## SubscriptionController (class auth: Authorize) route=api/Subscription
+  GET    /api/Subscription/GetSubscription  -> GetSubscription  [Authorize]
+  GET    /api/Subscription/GetSubscriptionById/{packageDetailId}  -> GetPatientLabEntry  [Authorize]
+  POST   /api/Subscription/SaveUpdateSubscription  -> SaveUpdateSubscription  [Authorize]
+
+## UsersController (class auth: None) route=api/users
+  GET    /api/users/{userId}  -> Get  [Authorize]
+  POST   /api/users  -> Post  [AllowAnonymous]
+  POST   /api/users/ActivateUser  -> ActivateUser  [None]
+  GET    /api/users  -> GetAllUser  [None]
+  POST   /api/users/DeleteUser  -> DeleteUser  [None]
+  POST   /api/users/ForgetPassword  -> ForgetPassword  [None]

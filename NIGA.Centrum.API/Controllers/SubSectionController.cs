@@ -10,6 +10,7 @@ using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Entity.DataModels;
 using NIGA.Centrum.Model;
 
+using NIGA.Centrum.Common;
 namespace NIGA.Centrum.API.Controllers
 {
     /// <summary>
@@ -18,6 +19,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/subsection")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class SubSectionController : BaseAPIController
     {
         ISubSectionService _subsectionService;
@@ -98,6 +100,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult SaveSubSection(List<SubSectionModel> subSectionModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -128,6 +131,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteSubSection(SubSectionModel subSectionModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -249,6 +253,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteSubSectionLanguageDetails(SubSectionLanguageDetailsModel subSectionLanguageDetailsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -283,6 +288,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult DeleteReferenceRubricDetails(ReferenceRubricDetailsModel referenceRubricDetailsModel)
         {
             ErrorResponseModel errorResponseModel = null;
@@ -410,6 +416,7 @@ namespace NIGA.Centrum.API.Controllers
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
         [ProducesResponseType(typeof(string), 500)]
+        [Authorize(Policy = AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult UpdateMainParentSubsection(long subsectionId, [FromQuery] bool mainParentSubsection, [FromQuery] string changedBy)
         {
             ErrorResponseModel errorResponseModel = null;

@@ -12,5 +12,7 @@ namespace NIGA.Centrum.Entity.DataModels
         public string MobileNo { get; set; }
         public string EnquiryDetails1 { get; set; }
         public bool? EnquiryStatus { get; set; }
+        public string TicketStatus { get; set; }
+        public long? AssignedTo { get; set; }
     }
 }

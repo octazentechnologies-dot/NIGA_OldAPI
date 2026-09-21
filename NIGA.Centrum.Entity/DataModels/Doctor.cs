@@ -31,6 +31,7 @@ namespace NIGA.Centrum.Entity.DataModels
         public DateTime? ChangedDate { get; set; }
         public bool DeleteStatus { get; set; }
         public int? UserId { get; set; }
+        public bool? IsOnline { get; set; }
 
         public virtual PackageMaster Package { get; set; }
         public virtual QualificationMaster Qualification { get; set; }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
+using NIGA.Centrum.Common;
 using NIGA.Centrum.Model;
 using System;
 
@@ -11,6 +12,7 @@ namespace NIGA.Centrum.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [DoctorOnly]
     public class RepertorizationPageController : BaseAPIController
     {
         IRepertorizationPageService repertorizationPageService;
