@@ -1,7 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NIGA.Centrum.Entity.DataModels
 {
@@ -145,8 +145,8 @@ namespace NIGA.Centrum.Entity.DataModels
         {
             if (!optionsBuilder.IsConfigured)
             {
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=103.154.184.104;Database=Homeo;User Id=sa;Password=Homeo@niga19;TrustServerCertificate=True;Trusted_Connection=false;");
+                throw new InvalidOperationException(
+                    "NIGACentrumContext is not configured. Set ConnectionStrings:DefaultConnection in appsettings.json.");
             }
         }
 
@@ -1429,7 +1429,11 @@ namespace NIGA.Centrum.Entity.DataModels
             {
                 entity.HasKey(e => e.PatientAppId);
 
-                entity.Property(e => e.AppointmentDate).HasMaxLength(50);
+                entity.Property(e => e.AppointmentDate)
+                    .HasColumnType("datetime")
+                    .HasConversion(new ValueConverter<string, DateTime?>(
+                        v => AppointmentDateStore.ToStore(v),
+                        v => AppointmentDateStore.FromStore(v)));
 
                 entity.Property(e => e.Status).HasMaxLength(50);
 

@@ -505,18 +505,6 @@ namespace Niga_Domain.API.Controllers
                     loginRow.Satus = false;
                     await _context.SaveChangesAsync();
                 }
-                else
-                {
-                    _context.UserLoginStatus.Add(new UserLoginStatus
-                    {
-                        UserId = userId,
-                        LogDate = DateTime.UtcNow,
-                        InTime = DateTime.UtcNow,
-                        OutTime = DateTime.UtcNow,
-                        Satus = false
-                    });
-                    await _context.SaveChangesAsync();
-                }
 
                 return Ok(new { success = true, message = "Logged out" });
             }

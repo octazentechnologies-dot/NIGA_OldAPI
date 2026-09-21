@@ -42,6 +42,7 @@ namespace NIGA.Centrum.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Patient Appointment not found";
+                return null;
             }
             return new PatientAppointmentModel
             {
