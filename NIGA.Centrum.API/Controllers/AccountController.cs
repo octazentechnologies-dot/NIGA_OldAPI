@@ -280,7 +280,9 @@ namespace Niga_Domain.API.Controllers
                         x.UserId == model.UserName &&
                         !x.DeleteStatus);
 
-                if (receptionStaff == null || !ReceptionStaffPasswordHelper.VerifyPassword(model.Password, receptionStaff.Password))
+                if (receptionStaff == null
+                    || !receptionStaff.IsActive
+                    || !ReceptionStaffPasswordHelper.VerifyPassword(model.Password, receptionStaff.Password))
                     return Unauthorized(new { message = "Invalid username or password" });
 
                 var receptionDoctor = await _context.Doctor

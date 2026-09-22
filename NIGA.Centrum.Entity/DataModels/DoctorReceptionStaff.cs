@@ -35,5 +35,7 @@ namespace NIGA.Centrum.Entity.DataModels
         public DateTime? ChangedDate { get; set; }
 
         public bool DeleteStatus { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 }

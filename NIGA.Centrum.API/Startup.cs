@@ -70,6 +70,7 @@ namespace NIGA.Centrum.API
                 builder.AddFilter<AppFileLoggerProvider>(null, LogLevel.Debug);
                 builder.AddProvider(new AppFileLoggerProvider());
             });
+            services.AddHostedService<DailyIssueMatrixEmailService>();
             services.Configure<ConfigurationModel>(option => Configuration.GetSection("ConfigurationModel").Bind(option));
 
             // configure jwt authentication

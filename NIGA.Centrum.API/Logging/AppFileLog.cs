@@ -23,6 +23,7 @@ namespace NIGA.Centrum.API.Logging
         private static string _application = "NIGA Old-API (NIGA.Centrum.API)";
         private static bool _fileEnabled = true;
         private static bool _alertEnabled = true;
+        private static bool _dailyMatrixEnabled = true;
         private static int _cooldownMinutes = 10;
         private static string[] _recipients = Array.Empty<string>();
         private static SmtpSettingsModel _smtp;
@@ -30,6 +31,7 @@ namespace NIGA.Centrum.API.Logging
         public static string LogsDirectory { get { return _root; } }
         public static bool IsFileEnabled { get { return _fileEnabled; } }
         public static bool IsAlertEnabled { get { return _alertEnabled; } }
+        public static bool IsDailyMatrixEnabled { get { return _dailyMatrixEnabled; } }
 
         public static void SetRequestSnapshot(Dictionary<string, string> details)
         {
@@ -53,6 +55,9 @@ namespace NIGA.Centrum.API.Logging
                 var enabled = config["ErrorAlert:Enabled"];
                 if (!string.IsNullOrEmpty(enabled))
                     bool.TryParse(enabled, out _alertEnabled);
+                var daily = config["ErrorAlert:DailyMatrixEnabled"];
+                if (!string.IsNullOrEmpty(daily))
+                    bool.TryParse(daily, out _dailyMatrixEnabled);
                 var cool = config["ErrorAlert:CooldownMinutes"];
                 if (!string.IsNullOrEmpty(cool))
                     int.TryParse(cool, out _cooldownMinutes);
@@ -200,20 +205,8 @@ namespace NIGA.Centrum.API.Logging
                 }
             }
 
-            string method;
-            string path;
-            var who = First(merged, "UserName", "DisplayName", "User", "ClientUserName");
-            var browser = First(merged, "Browser");
-            var device = First(merged, "DeviceName");
-            var subject = "[" + _application + "] " + level + " — " + category;
-            if (!string.IsNullOrWhiteSpace(who))
-                subject += " user=" + who;
-            if (!string.IsNullOrWhiteSpace(browser))
-                subject += " " + browser;
-            if (!string.IsNullOrWhiteSpace(device))
-                subject += " / " + device;
-            if (merged.TryGetValue("Method", out method) && merged.TryGetValue("Path", out path))
-                subject += " " + method + " " + Truncate(path, 80);
+            merged["Source"] = "Old API";
+            var subject = "Homeocentrum Runtime ERROR - Old API - " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss");
 
             var body = BuildAlertHtml(level, category, message, ex, merged);
             var sender = new EmailSenderService();
@@ -231,6 +224,36 @@ namespace NIGA.Centrum.API.Logging
                 if (!ok)
                 {
                     Write("errors", "WARN", "ErrorAlert", "Alert email failed to " + to, null, null, false);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Midnight matrix. Subject stays "Homeocentrum Runtime ERROR - Old API - {local time}".
+        /// Counts and root causes are in the body.
+        /// </summary>
+        public static void SendDailyMatrix(DateTime day)
+        {
+            if (!_dailyMatrixEnabled || _recipients == null || _recipients.Length == 0 || _smtp == null)
+                return;
+
+            var rows = DailyIssueMatrix.Read(_root, day, "Old API");
+            var body = DailyIssueMatrix.ToHtml(day, "Old API", rows);
+            var subject = "Homeocentrum Runtime ERROR - Old API - " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss");
+            var sender = new EmailSenderService();
+            foreach (var to in _recipients)
+            {
+                if (string.IsNullOrWhiteSpace(to)) continue;
+                var ok = sender.SendMail(new EmailSenderModel
+                {
+                    ToAddress = to.Trim(),
+                    Subject = subject,
+                    Body = body,
+                    isHtml = true
+                }, _smtp);
+                if (!ok)
+                {
+                    Write("errors", "WARN", "ErrorAlert", "Daily matrix email failed to " + to, null, null, false);
                 }
             }
         }
@@ -275,6 +298,7 @@ namespace NIGA.Centrum.API.Logging
             OpenSectionCell(sb);
             RenderKvTable(sb, "Summary", new[]
             {
+                Kv("Source", Val(details, "Source", "Old API")),
                 Kv("Level", Val(details, "Level", level)),
                 Kv("Category", Val(details, "Category", category)),
                 Kv("Application", Dash(Val(details, "Application", ""))),
