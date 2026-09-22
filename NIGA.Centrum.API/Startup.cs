@@ -207,7 +207,6 @@ namespace NIGA.Centrum.API
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             AppFileLog.Initialize(env.ContentRootPath, Configuration);
-            app.UseMiddleware<AppDiagnosticsMiddleware>();
 
             if (env.IsDevelopment())
             {
@@ -215,6 +214,7 @@ namespace NIGA.Centrum.API
             }
 
             app.UseAuthentication();
+            app.UseMiddleware<AppDiagnosticsMiddleware>();
             //app.UseCors(builder => builder.AllowAnyOrigin()
             //                    .AllowAnyMethod()
             //                    .WithHeaders("authorization", "accept", "content-type", "origin"));

@@ -29,6 +29,8 @@ namespace NIGA.Centrum.Business.Implementation
         NIGACentrumContext context;
         private readonly IMemoryCache _cache;
         private readonly ILogger<SubSectionService> _logger;
+        /// <summary>-1 unknown, 0 missing, 1 SearchNormalized is on the table FTS index.</summary>
+        private static int _searchNormalizedFtsState = -1;
         /// <summary>
         /// Creating constructor and injection dbContext
         /// </summary>
@@ -38,7 +40,71 @@ namespace NIGA.Centrum.Business.Implementation
             context = centrumContext;
             _cache = cache;
             _logger = logger;
+        }
 
+        private bool IsSearchNormalizedFullTextAvailable()
+        {
+            if (_searchNormalizedFtsState >= 0)
+                return _searchNormalizedFtsState == 1;
+
+            try
+            {
+                var conn = context.Database.GetDbConnection();
+                var openedHere = conn.State != System.Data.ConnectionState.Open;
+                if (openedHere)
+                    conn.Open();
+                try
+                {
+                    using (var cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+SELECT CASE WHEN EXISTS (
+    SELECT 1
+    FROM sys.fulltext_index_columns fic
+    INNER JOIN sys.columns c
+        ON c.object_id = fic.object_id AND c.column_id = fic.column_id
+    WHERE fic.object_id = OBJECT_ID(N'dbo.SubSectionMaster')
+      AND c.name = N'SearchNormalized') THEN 1 ELSE 0 END";
+                        var scalar = cmd.ExecuteScalar();
+                        _searchNormalizedFtsState = Convert.ToInt32(scalar);
+                    }
+                }
+                finally
+                {
+                    if (openedHere)
+                        conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                _searchNormalizedFtsState = 0;
+                _logger?.LogWarning(ex, "Could not detect SearchNormalized full-text index. Using LIKE search.");
+            }
+
+            if (_searchNormalizedFtsState == 0)
+            {
+                _logger?.LogWarning("SearchNormalized is not full-text indexed. Subsection search uses LIKE until the FTS column is added.");
+            }
+
+            return _searchNormalizedFtsState == 1;
+        }
+
+        private static void MarkSearchNormalizedFullTextUnavailable()
+        {
+            _searchNormalizedFtsState = 0;
+        }
+
+        private static bool IsMissingFullTextIndex(Exception ex)
+        {
+            for (var cur = ex; cur != null; cur = cur.InnerException)
+            {
+                if (cur is SqlException sql && sql.Number == 7601)
+                    return true;
+                if (!string.IsNullOrEmpty(cur.Message)
+                    && cur.Message.IndexOf("not full-text indexed", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -1181,6 +1247,9 @@ namespace NIGA.Centrum.Business.Implementation
             string[] words,
             int top)
         {
+            if (!IsSearchNormalizedFullTextAvailable())
+                return new List<SubSectionSearchMatchRow>();
+
             try
             {
                 var fullTextQuery = string.Join(" OR ", words.Select(w => $"\"{w}*\""));
@@ -1214,6 +1283,8 @@ namespace NIGA.Centrum.Business.Implementation
             }
             catch (Exception ex)
             {
+                if (IsMissingFullTextIndex(ex))
+                    MarkSearchNormalizedFullTextUnavailable();
                 _logger?.LogWarning(
                     ex,
                     "Full-text subsection search failed for SectionId={SectionId}. Falling back to LIKE search.",
@@ -1232,6 +1303,9 @@ namespace NIGA.Centrum.Business.Implementation
 
         private async Task<int> TryCountSubSectionsFullTextAsync(long? sectionId, string[] words)
         {
+            if (!IsSearchNormalizedFullTextAvailable())
+                return 0;
+
             try
             {
                 var fullTextQuery = string.Join(" OR ", words.Select(w => $"\"{w}*\""));
@@ -1276,6 +1350,8 @@ namespace NIGA.Centrum.Business.Implementation
             }
             catch (Exception ex)
             {
+                if (IsMissingFullTextIndex(ex))
+                    MarkSearchNormalizedFullTextUnavailable();
                 _logger?.LogWarning(
                     ex,
                     "Full-text subsection count failed for SectionId={SectionId}. Falling back to LIKE search.",
@@ -1290,6 +1366,9 @@ namespace NIGA.Centrum.Business.Implementation
             int offset,
             int pageSize)
         {
+            if (!IsSearchNormalizedFullTextAvailable())
+                return new List<SubSectionSearchMatchRow>();
+
             try
             {
                 var fullTextQuery = string.Join(" OR ", words.Select(w => $"\"{w}*\""));
@@ -1325,6 +1404,8 @@ namespace NIGA.Centrum.Business.Implementation
             }
             catch (Exception ex)
             {
+                if (IsMissingFullTextIndex(ex))
+                    MarkSearchNormalizedFullTextUnavailable();
                 _logger?.LogWarning(
                     ex,
                     "Paged full-text subsection search failed for SectionId={SectionId}. Falling back to LIKE search.",

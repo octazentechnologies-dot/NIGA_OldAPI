@@ -215,7 +215,7 @@ namespace NIGA.Centrum.API.Logging
             if (merged.TryGetValue("Method", out method) && merged.TryGetValue("Path", out path))
                 subject += " " + method + " " + Truncate(path, 80);
 
-            var body = BuildAlertHtml(level, message, ex, merged);
+            var body = BuildAlertHtml(level, category, message, ex, merged);
             var sender = new EmailSenderService();
             foreach (var to in _recipients)
             {
@@ -235,64 +235,219 @@ namespace NIGA.Centrum.API.Logging
             }
         }
 
-        private static string BuildAlertHtml(string level, string message, Exception ex, IDictionary<string, string> details)
+        private static readonly string[] WhoKeys = new[]
         {
+            "UserName", "DisplayName", "User", "UserId", "Role", "DoctorId", "DoctorUserId",
+            "ClientUserName", "ClientUserId", "ClientRole", "Authenticated", "HasBearer"
+        };
+
+        private static readonly string[] WhenKeys = new[]
+        {
+            "OccurredAtLocal", "OccurredAtUtc", "LoggedAtLocal", "LoggedAtUtc", "ServerTimeZone", "TimeZone", "ElapsedMs"
+        };
+
+        private static readonly string[] WhereKeys = new[]
+        {
+            "Application", "Environment", "Host", "Scheme", "Path", "Method", "ClientUrl", "Href", "Referrer",
+            "RemoteIp", "ForwardedFor", "Machine", "ProcessId", "TraceId", "Status", "ContentType", "LogsDirectory"
+        };
+
+        private static readonly string[] BrowserKeys = new[]
+        {
+            "Browser", "BrowserVersion", "Os", "DeviceType", "DeviceName", "Platform", "Screen", "Language", "UserAgent"
+        };
+
+        private static string BuildAlertHtml(string level, string category, string message, Exception ex, IDictionary<string, string> details)
+        {
+            var accent = string.Equals(level, "WARN", StringComparison.OrdinalIgnoreCase) ? "#b45309" : "#b91c1c";
+            var shown = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var sb = new StringBuilder();
-            sb.Append("<div style='font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#222'>");
-            sb.Append("<h2 style='margin:0 0 8px'>Homeocentrum runtime ").Append(WebUtility.HtmlEncode(level)).Append("</h2>");
-            sb.Append("<p style='margin:0 0 12px'>Who hit this, when, from which browser/device, and the detailed error log.</p>");
+            sb.Append("<!DOCTYPE html><html><head><meta charset=\"utf-8\"></head>");
+            sb.Append("<body style=\"margin:0;padding:0;background:#e2e8f0;\">");
+            sb.Append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#e2e8f0\"><tr><td align=\"center\" style=\"padding:16px;\">");
+            sb.Append("<table width=\"680\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#ffffff\" style=\"width:680px;max-width:100%;border:1px solid #94a3b8;\">");
 
-            RenderSection(sb, "Who", details, new[] { "UserName", "DisplayName", "User", "UserId", "Role", "DoctorId", "DoctorUserId", "Authenticated" });
-            RenderSection(sb, "When", details, new[] { "OccurredAtLocal", "OccurredAtUtc", "LoggedAtLocal", "LoggedAtUtc", "ServerTimeZone", "ElapsedMs" });
-            RenderSection(sb, "Where", details, new[] { "Application", "Environment", "Host", "Scheme", "Path", "Method", "Referrer", "RemoteIp", "ForwardedFor", "Machine", "TraceId", "Status" });
-            RenderSection(sb, "Browser / device", details, new[] { "Browser", "BrowserVersion", "Os", "DeviceType", "DeviceName", "UserAgent" });
+            sb.Append("<tr><td bgcolor=\"").Append(accent).Append("\" style=\"padding:16px 20px;font-family:Segoe UI,Arial,sans-serif;color:#ffffff;\">");
+            sb.Append("<div style=\"font-size:20px;font-weight:700;\">Homeocentrum Runtime ").Append(WebUtility.HtmlEncode((level ?? "ERROR").ToUpperInvariant())).Append("</div>");
+            sb.Append("<div style=\"font-size:13px;margin-top:6px;\">Error log, audit log, and full diagnostic dump</div>");
+            sb.Append("</td></tr>");
 
-            sb.Append("<h3>Message</h3><pre style='white-space:pre-wrap;background:#f8f8f8;padding:10px;border:1px solid #ddd'>")
-                .Append(WebUtility.HtmlEncode(message ?? "")).Append("</pre>");
+            OpenSectionCell(sb);
+            RenderKvTable(sb, "Summary", new[]
+            {
+                Kv("Level", Val(details, "Level", level)),
+                Kv("Category", Val(details, "Category", category)),
+                Kv("Application", Dash(Val(details, "Application", ""))),
+                Kv("When (local)", Dash(First(details, "OccurredAtLocal", "LoggedAtLocal"))),
+                Kv("Method / path", Dash(JoinVals(Val(details, "Method", ""), Val(details, "Path", "")))),
+                Kv("Status", Dash(Val(details, "Status", ""))),
+                Kv("TraceId", Dash(Val(details, "TraceId", ""))),
+                Kv("User", Dash(JoinVals(First(details, "UserName", "User", "ClientUserName"), Val(details, "Role", ""))))
+            }, shown);
+            CloseSectionCell(sb);
 
-            sb.Append("<h3>Detailed error log</h3>");
+            OpenSectionCell(sb);
+            RenderNamedSection(sb, "Who", details, WhoKeys, shown, new[] { "Authenticated", "HasBearer" });
+            CloseSectionCell(sb);
+            OpenSectionCell(sb);
+            RenderNamedSection(sb, "When", details, WhenKeys, shown, new[] { "LoggedAtLocal" });
+            CloseSectionCell(sb);
+            OpenSectionCell(sb);
+            RenderNamedSection(sb, "Where", details, WhereKeys, shown, new[] { "Path", "Method", "Host" });
+            CloseSectionCell(sb);
+            OpenSectionCell(sb);
+            RenderNamedSection(sb, "Browser / device", details, BrowserKeys, shown, new string[0]);
+            CloseSectionCell(sb);
+
+            AppendPreBlock(sb, "Message", message, "#f8fafc", "#0f172a");
             if (ex != null)
             {
-                sb.Append("<pre style='white-space:pre-wrap;background:#fff4f4;padding:10px;border:1px solid #e0b0b0'>")
-                    .Append(WebUtility.HtmlEncode(ex.ToString())).Append("</pre>");
-            }
-            var tail = ReadRecentLogTail();
-            if (!string.IsNullOrWhiteSpace(tail))
-            {
-                sb.Append("<h4>Recent log file tail</h4><pre style='white-space:pre-wrap;background:#111;color:#eee;padding:10px;border:1px solid #333'>")
-                    .Append(WebUtility.HtmlEncode(tail)).Append("</pre>");
+                var detail = new StringBuilder();
+                detail.Append(ex.ToString());
+                var inner = ex.InnerException;
+                var n = 1;
+                while (inner != null && n <= 5)
+                {
+                    detail.Append("\n\n--- Inner exception ").Append(n).Append(" ---\n").Append(inner);
+                    inner = inner.InnerException;
+                    n++;
+                }
+                AppendPreBlock(sb, "Exception / stack", detail.ToString(), "#fff7ed", "#7c2d12");
             }
 
-            sb.Append("<h3>All diagnostic fields</h3>");
-            sb.Append("<table cellpadding='6' cellspacing='0' style='border-collapse:collapse;border:1px solid #ccc'>");
-            foreach (var kv in details)
-            {
-                sb.Append("<tr><td style='border:1px solid #ccc;background:#f6f6f6;white-space:nowrap'><b>")
-                    .Append(WebUtility.HtmlEncode(kv.Key))
-                    .Append("</b></td><td style='border:1px solid #ccc'>")
-                    .Append(WebUtility.HtmlEncode(kv.Value ?? ""))
-                    .Append("</td></tr>");
-            }
-            sb.Append("</table>");
-            sb.Append("<p>Log files: ").Append(WebUtility.HtmlEncode(_root)).Append("</p></div>");
+            string stack;
+            if (details.TryGetValue("Stack", out stack) && !string.IsNullOrWhiteSpace(stack))
+                AppendPreBlock(sb, "Client stack", stack, "#fff7ed", "#7c2d12");
+            string cstack;
+            if (details.TryGetValue("ComponentStack", out cstack) && !string.IsNullOrWhiteSpace(cstack))
+                AppendPreBlock(sb, "React component stack", cstack, "#fff7ed", "#7c2d12");
+            string ce;
+            if (details.TryGetValue("ClientError", out ce) && !string.IsNullOrWhiteSpace(ce))
+                AppendPreBlock(sb, "Client error", ce, "#f8fafc", "#0f172a");
+
+            shown.Add("Stack");
+            shown.Add("ComponentStack");
+            shown.Add("ClientError");
+            shown.Add("Level");
+            shown.Add("Category");
+
+            AppendPreBlock(sb, "Error log (niga-errors, latest)", ReadKindTail("errors", 80, 12000), "#0f172a", "#e2e8f0");
+            AppendPreBlock(sb, "Audit log (niga-audit, latest)", ReadKindTail("audit", 80, 12000), "#0f172a", "#e2e8f0");
+            AppendPreBlock(sb, "App log (niga-app, latest)", ReadKindTail("app", 60, 8000), "#0f172a", "#e2e8f0");
+
+            var leftover = details
+                .Where(kv => !shown.Contains(kv.Key) && !string.IsNullOrWhiteSpace(kv.Value))
+                .OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(kv => Kv(kv.Key, kv.Value))
+                .ToArray();
+            OpenSectionCell(sb);
+            RenderKvTable(sb, "Other diagnostic fields", leftover, shown);
+            CloseSectionCell(sb);
+
+            sb.Append("<tr><td style=\"padding:8px 20px 20px;font-family:Segoe UI,Arial,sans-serif;font-size:11px;color:#64748b;\">Log files: ")
+                .Append(WebUtility.HtmlEncode(_root)).Append("</td></tr>");
+            sb.Append("</table></td></tr></table></body></html>");
             return sb.ToString();
         }
 
-        private static void RenderSection(StringBuilder sb, string title, IDictionary<string, string> details, string[] keys)
+        private static KeyValuePair<string, string> Kv(string key, string value)
         {
-            sb.Append("<h3>").Append(WebUtility.HtmlEncode(title)).Append("</h3>");
-            sb.Append("<table cellpadding='6' cellspacing='0' style='border-collapse:collapse;border:1px solid #ccc;margin-bottom:12px'>");
+            return new KeyValuePair<string, string>(key, value ?? "");
+        }
+
+        private static void OpenSectionCell(StringBuilder sb)
+        {
+            sb.Append("<tr><td style=\"padding:10px 20px 0;font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#0f172a;\">");
+        }
+
+        private static void CloseSectionCell(StringBuilder sb)
+        {
+            sb.Append("</td></tr>");
+        }
+
+        private static void RenderNamedSection(StringBuilder sb, string title, IDictionary<string, string> details,
+            string[] keys, HashSet<string> shown, string[] always)
+        {
+            var rows = new List<KeyValuePair<string, string>>();
             for (var i = 0; i < keys.Length; i++)
             {
-                string value;
-                details.TryGetValue(keys[i], out value);
-                sb.Append("<tr><td style='border:1px solid #ccc;background:#f6f6f6;white-space:nowrap'><b>")
-                    .Append(WebUtility.HtmlEncode(keys[i]))
-                    .Append("</b></td><td style='border:1px solid #ccc'>")
-                    .Append(WebUtility.HtmlEncode(value ?? ""))
-                    .Append("</td></tr>");
+                var key = keys[i];
+                var value = Val(details, key, "");
+                var keep = !string.IsNullOrWhiteSpace(value) || AlwaysHas(always, key);
+                if (keep)
+                    rows.Add(Kv(key, string.IsNullOrWhiteSpace(value) ? "—" : value));
+            }
+            RenderKvTable(sb, title, rows.ToArray(), shown);
+        }
+
+        private static bool AlwaysHas(string[] always, string key)
+        {
+            if (always == null) return false;
+            for (var i = 0; i < always.Length; i++)
+            {
+                if (string.Equals(always[i], key, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
+        private static void RenderKvTable(StringBuilder sb, string title, KeyValuePair<string, string>[] rows, HashSet<string> shown)
+        {
+            sb.Append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"1\" bordercolor=\"#cbd5e1\" bgcolor=\"#ffffff\" style=\"width:100%;border-collapse:collapse;margin:0 0 10px;\">");
+            sb.Append("<tr><td colspan=\"2\" bgcolor=\"#0f172a\" style=\"background:#0f172a;color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:700;padding:8px 10px;\">")
+                .Append(WebUtility.HtmlEncode(title)).Append("</td></tr>");
+            var any = false;
+            for (var i = 0; i < rows.Length; i++)
+            {
+                shown.Add(rows[i].Key);
+                if (string.IsNullOrWhiteSpace(rows[i].Value)) continue;
+                any = true;
+                sb.Append("<tr>");
+                sb.Append("<td width=\"200\" bgcolor=\"#f8fafc\" valign=\"top\" style=\"width:200px;background:#f8fafc;padding:7px 10px;font-family:Segoe UI,Arial,sans-serif;font-size:12px;font-weight:700;color:#334155;\">")
+                    .Append(WebUtility.HtmlEncode(rows[i].Key)).Append("</td>");
+                sb.Append("<td width=\"480\" valign=\"top\" style=\"width:480px;padding:7px 10px;font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#0f172a;word-break:break-word;\">")
+                    .Append(WebUtility.HtmlEncode(rows[i].Value)).Append("</td>");
+                sb.Append("</tr>");
+            }
+            if (!any)
+            {
+                sb.Append("<tr><td colspan=\"2\" style=\"padding:8px 10px;font-family:Segoe UI,Arial,sans-serif;font-size:12px;color:#64748b;\">No values captured</td></tr>");
             }
             sb.Append("</table>");
+        }
+
+        private static void AppendPreBlock(StringBuilder sb, string title, string body, string bg, string color)
+        {
+            var text = string.IsNullOrWhiteSpace(body) ? "(none for today)" : body;
+            sb.Append("<tr><td style=\"padding:10px 20px 0;font-family:Segoe UI,Arial,sans-serif;font-size:13px;color:#0f172a;\">");
+            sb.Append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"1\" bordercolor=\"#cbd5e1\" style=\"width:100%;border-collapse:collapse;margin:0 0 10px;\">");
+            sb.Append("<tr><td bgcolor=\"#0f172a\" style=\"background:#0f172a;color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:13px;font-weight:700;padding:8px 10px;\">")
+                .Append(WebUtility.HtmlEncode(title)).Append("</td></tr>");
+            sb.Append("<tr><td bgcolor=\"").Append(bg).Append("\" style=\"background:").Append(bg)
+                .Append(";padding:10px;font-family:Consolas,Courier New,monospace;font-size:11px;line-height:1.45;color:")
+                .Append(color).Append(";white-space:pre-wrap;word-break:break-word;\">")
+                .Append(WebUtility.HtmlEncode(text)).Append("</td></tr>");
+            sb.Append("</table></td></tr>");
+        }
+
+        private static string Val(IDictionary<string, string> details, string key, string fallback)
+        {
+            string value;
+            if (details != null && details.TryGetValue(key, out value) && !string.IsNullOrWhiteSpace(value))
+                return value.Trim();
+            return fallback ?? "";
+        }
+
+        private static string JoinVals(string a, string b)
+        {
+            if (string.IsNullOrWhiteSpace(a)) return b ?? "";
+            if (string.IsNullOrWhiteSpace(b)) return a;
+            return a + "  " + b;
+        }
+
+        private static string Dash(string value)
+        {
+            return string.IsNullOrWhiteSpace(value) ? "—" : value;
         }
 
         private static string First(IDictionary<string, string> details, params string[] keys)
@@ -306,33 +461,33 @@ namespace NIGA.Centrum.API.Logging
             return "";
         }
 
-        private static string ReadRecentLogTail()
+        private static string ReadKindTail(string kind, int maxLines, int maxBytes)
         {
             try
             {
-                if (!_fileEnabled) return "";
+                if (!_fileEnabled) return "File logging is disabled.";
                 var day = DateTime.Now.ToString("yyyyMMdd");
-                var path = Path.Combine(_root, "niga-errors-" + day + ".log");
+                var path = Path.Combine(_root, "niga-" + kind + "-" + day + ".log");
                 if (!File.Exists(path))
-                    path = Path.Combine(_root, "niga-all-" + day + ".log");
-                if (!File.Exists(path)) return "";
+                    return "No niga-" + kind + "-" + day + ".log for today.";
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    if (fs.Length > 12000)
-                        fs.Seek(-12000, SeekOrigin.End);
+                    if (fs.Length > maxBytes)
+                        fs.Seek(-maxBytes, SeekOrigin.End);
                     using (var reader = new StreamReader(fs, Encoding.UTF8, true, 1024, true))
                     {
                         var text = reader.ReadToEnd();
                         var lines = text.Replace("\r\n", "\n").Split('\n');
-                        var take = lines.Length < 40 ? lines.Length : 40;
+                        var take = lines.Length < maxLines ? lines.Length : maxLines;
                         var start = lines.Length - take;
-                        return string.Join("\n", lines, start, take).Trim();
+                        var body = string.Join("\n", lines, start, take).Trim();
+                        return string.IsNullOrWhiteSpace(body) ? "niga-" + kind + " log is empty today." : body;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return "";
+                return "Could not read niga-" + kind + " log: " + ex.Message;
             }
         }
 

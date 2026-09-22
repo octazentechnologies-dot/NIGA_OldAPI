@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Common;
 using NIGA.Centrum.Entity.DataModels;
@@ -17,9 +19,54 @@ namespace NIGA.Centrum.Business.Implementation
     {
         NIGACentrumContext context;
         EmailSenderService emailSenderService = new EmailSenderService();
+        private readonly ConfigurationModel _site;
+        private readonly IConfiguration _config;
+
         public UserService(NIGACentrumContext centrumContext)
+            : this(centrumContext, null, null)
+        {
+        }
+
+        public UserService(
+            NIGACentrumContext centrumContext,
+            IOptions<ConfigurationModel> siteOptions,
+            IConfiguration config)
         {
             context = centrumContext;
+            _site = siteOptions != null ? siteOptions.Value : new ConfigurationModel();
+            _config = config;
+        }
+
+        /// <summary>
+        /// Local vs other env: set ConfigurationModel:SiteUrl (or HostName) in that environment's appsettings.
+        /// Dev default is http://localhost:3000. SPA login path is /login.
+        /// </summary>
+        private string ResolveUiSiteUrl()
+        {
+            string raw = null;
+            if (_site != null)
+            {
+                if (!string.IsNullOrWhiteSpace(_site.SiteUrl))
+                    raw = _site.SiteUrl;
+                else if (!string.IsNullOrWhiteSpace(_site.HostName))
+                    raw = _site.HostName;
+            }
+            if (string.IsNullOrWhiteSpace(raw) && _config != null)
+            {
+                raw = _config["AppSettings:UiBaseUrl"];
+            }
+            if (string.IsNullOrWhiteSpace(raw))
+            {
+                raw = "http://localhost:3000";
+            }
+            return raw.Trim().TrimEnd('/');
+        }
+
+        private string BuildWelcomeLoginUrl(string encryptedUserId)
+        {
+            return ResolveUiSiteUrl()
+                + "/login?UserId="
+                + Uri.EscapeDataString(encryptedUserId ?? string.Empty);
         }
 
         public string AddUser(UserModel model, SmtpSettingsModel smtpSettingsModel, ref ErrorResponseModel errorResponseModel)
@@ -72,11 +119,11 @@ namespace NIGA.Centrum.Business.Implementation
                 try
                 {
                     var EncryptedUserId = EncryptionHelper.Encrypt(userEntity.UserId.ToString());
-                    //Send encrypted user id to mail//
+                    var loginUrl = BuildWelcomeLoginUrl(EncryptedUserId);
                     StringBuilder strBody = new StringBuilder();
                     strBody.Append("<body>");
                     strBody.Append("<P>Click below link to verify your Account</P>");
-                    strBody.Append("<h2><a href='http://ui.homeocentrum.com/Login/login?UserId=" + EncryptedUserId + "'>Click here to redirect</a></h2>");
+                    strBody.Append("<h2><a href='" + loginUrl + "'>Click here to redirect</a></h2>");
                     strBody.Append("</body>");
                     var emailSenderModel = new EmailSenderModel();
                     emailSenderModel.ToAddress = userEntity.EmailId;

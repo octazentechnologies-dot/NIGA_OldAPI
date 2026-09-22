@@ -9,12 +9,13 @@
       - Full-text catalog + index on SearchNormalized (if missing)
 
     Safe to re-run: each step checks existence before creating.
+    Point SSMS at the API database first (Dev: HomeoCentrum_Dev). Do not rely on a hardcoded USE.
+    If the table already has a full-text index on SubSectionName (audio 725/726), step 6
+    ADDs SearchNormalized to that index instead of skipping.
 */
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
-
-USE [HomeoCentrum_Production];
 GO
 
 /* -------------------------------------------------------------------------- */
@@ -169,8 +170,21 @@ CREATE FULLTEXT INDEX ON dbo.SubSectionMaster(SearchNormalized)
     EXEC sp_executesql @sql;
     PRINT CONCAT('Created full-text index on SearchNormalized using key ', @PkIndexName);
 END
+ELSE IF NOT EXISTS (
+    SELECT 1
+    FROM sys.fulltext_index_columns fic
+    INNER JOIN sys.columns c
+        ON c.object_id = fic.object_id AND c.column_id = fic.column_id
+    WHERE fic.object_id = OBJECT_ID(N'dbo.SubSectionMaster')
+      AND c.name = N'SearchNormalized'
+)
+BEGIN
+    SET @sql = N'ALTER FULLTEXT INDEX ON dbo.SubSectionMaster ADD (SearchNormalized LANGUAGE 1033);';
+    EXEC sp_executesql @sql;
+    PRINT 'Added SearchNormalized to the existing dbo.SubSectionMaster full-text index';
+END
 ELSE
-    PRINT 'Full-text index on dbo.SubSectionMaster already exists';
+    PRINT 'Full-text index on dbo.SubSectionMaster already includes SearchNormalized';
 GO
 
 /* -------------------------------------------------------------------------- */
