@@ -10,5 +10,6 @@ namespace NIGA.Centrum.Model
         public bool isHtml { get; set; }
         public string Subject { get; set; }
         public bool sentStatus { get; set; }
+        public string LastError { get; set; }
     }
 }

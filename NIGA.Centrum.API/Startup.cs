@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using NIGA.Centrum.API.Logging;
 using NIGA.Centrum.Business.Implementation;
 using NIGA.Centrum.Business.Interface;
 using NIGA.Centrum.Business.Interfaces;
@@ -63,6 +65,11 @@ namespace NIGA.Centrum.API
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             //services.AddSingleton<IConfiguration>(Configuration);
             services.Configure<SmtpSettingsModel>(option => Configuration.GetSection("smtp").Bind(option));
+            services.AddLogging(builder =>
+            {
+                builder.AddFilter<AppFileLoggerProvider>(null, LogLevel.Debug);
+                builder.AddProvider(new AppFileLoggerProvider());
+            });
             services.Configure<ConfigurationModel>(option => Configuration.GetSection("ConfigurationModel").Bind(option));
 
             // configure jwt authentication
@@ -199,6 +206,9 @@ namespace NIGA.Centrum.API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            AppFileLog.Initialize(env.ContentRootPath, Configuration);
+            app.UseMiddleware<AppDiagnosticsMiddleware>();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
