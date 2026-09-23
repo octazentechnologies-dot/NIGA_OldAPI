@@ -47,7 +47,13 @@ namespace NIGA.Centrum.API.Controllers
                 {
                     return Ok(remedyModel);
                 }
-                return ReturnErrorResponse(errorResponseModel);
+                if (errorResponseModel?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return NotFound(new { success = false, message = errorResponseModel.Message ?? "Case detail not found." });
+                return BadRequest(errorResponseModel?.Message ?? "Case details are required.");
+            }
+            catch (NullReferenceException)
+            {
+                return BadRequest("Invalid case-details payload.");
             }
             catch (Exception ex)
             {

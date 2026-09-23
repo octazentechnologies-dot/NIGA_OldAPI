@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -60,9 +61,15 @@ namespace NIGA.Centrum.API
                 throw new InvalidOperationException(
                     "Connection string 'DefaultConnection' was not found in appsettings.json.");
             }
-            services.AddDbContext<NIGACentrumContext>(options => options.UseSqlServer(defaultConnection));
+            services.AddDbContext<NIGACentrumContext>(options =>
+                options.UseSqlServer(defaultConnection, sql => sql.CommandTimeout(90)));
             services.AddMemoryCache();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.InvalidModelStateResponseFactory = ApiProblem.Validation;
+            });
+            services.AddHealthChecks();
             //services.AddSingleton<IConfiguration>(Configuration);
             services.Configure<SmtpSettingsModel>(option => Configuration.GetSection("smtp").Bind(option));
             services.AddLogging(builder =>
@@ -179,7 +186,7 @@ namespace NIGA.Centrum.API
             //// Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "Centrum API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info { Title = "Homeocentrum Old API", Version = "v1" });
 
                 var security = new Dictionary<string, IEnumerable<string>>
                 {
@@ -214,8 +221,28 @@ namespace NIGA.Centrum.API
                 app.UseDeveloperExceptionPage();
             }
 
+            app.Use(async (context, next) =>
+            {
+                if (HttpMethods.IsGet(context.Request.Method)
+                    && (context.Request.Path.Value == "/" || string.IsNullOrEmpty(context.Request.Path.Value)))
+                {
+                    context.Response.Redirect("/swagger");
+                    return;
+                }
+                await next();
+            });
+
             app.UseAuthentication();
             app.UseMiddleware<AppDiagnosticsMiddleware>();
+            app.UseMiddleware<SimpleRateLimitMiddleware>();
+            app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+            {
+                ResponseWriter = (context, report) =>
+                {
+                    context.Response.ContentType = "application/json";
+                    return context.Response.WriteAsync("{\"success\":true,\"status\":\"" + report.Status + "\",\"api\":\"Old API\"}");
+                }
+            });
             //app.UseCors(builder => builder.AllowAnyOrigin()
             //                    .AllowAnyMethod()
             //                    .WithHeaders("authorization", "accept", "content-type", "origin"));
@@ -233,14 +260,15 @@ namespace NIGA.Centrum.API
             });
 
 
+            app.UseMiddleware<SwaggerGateMiddleware>();
             app.UseMvc();
 
             ////comment below part at the time host
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Test API V1");
-                //c.DocExpansion("none");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Homeocentrum Old API");
+                c.DocumentTitle = "Homeocentrum Old API";
             });
             ////up to
         }

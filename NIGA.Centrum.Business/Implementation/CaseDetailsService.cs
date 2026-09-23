@@ -39,56 +39,58 @@ namespace NIGA.Centrum.Business.Implementation
 
         public string SaveCaseDetails(List<CaseDetailsModel> casedetailsModel, ref ErrorResponseModel errorResponseModel)
         {
+            errorResponseModel = new ErrorResponseModel();
+            if (casedetailsModel == null || casedetailsModel.Count == 0)
+            {
+                errorResponseModel.StatusCode = HttpStatusCode.BadRequest;
+                errorResponseModel.Message = "Case details are required";
+                return null;
+            }
+
             string Message = "";
-            var existingDetails = context.CaseDetails.Where(x => x.CaseId == casedetailsModel[0].CaseId
-                                                            ).ToList();
-
-            //foreach (var item in casedetailsModel)
-            // {
-            //     var caseDetailsEntity = new CaseDetails();
-            //    // caseDetailsEntity.CaseDetailId = item.CaseDetailId;
-            //     caseDetailsEntity.SubsectionId = item.SubsectionId;
-            //     caseDetailsEntity.CaseId = item.CaseId;
-            //     caseDetailsEntity.IntensityId = item.IntensityId;
-            //     caseDetailsEntity.RemedyCount = item.RemedyCount;
-            //     context.CaseDetails.Add(caseDetailsEntity);
-            //     context.SaveChanges();
-
-            // }
-
-            
             foreach (var item in casedetailsModel)
             {
-                var caseDetailsEntity = new CaseDetails();
-
+                CaseDetails caseDetailsEntity;
                 if (item.CaseDetailId == 0)
                 {
-                   // var caseDetailsEntity = new CaseDetails();
-                     caseDetailsEntity.CaseDetailId = item.CaseDetailId;
-                    caseDetailsEntity.SubsectionId = item.SubsectionId;
-                    caseDetailsEntity.CaseId = item.CaseId;
-                    caseDetailsEntity.IntensityId = item.IntensityId;
-                    caseDetailsEntity.RemedyCount = item.RemedyCount;
+                    caseDetailsEntity = new CaseDetails
+                    {
+                        SubsectionId = item.SubsectionId,
+                        CaseId = item.CaseId,
+                        IntensityId = item.IntensityId,
+                        RemedyCount = item.RemedyCount
+                    };
                     context.CaseDetails.Add(caseDetailsEntity);
                     context.SaveChanges();
-         
-                   
-                   
                 }
-                        if (casedetailsModel.IndexOf(item) == casedetailsModel.Count-1) 
-                        { 
-                                foreach (var item1 in item.ModelEx)
-                                {
-                                    var modeldetails = new CaseDetailRemedy();
-                                    modeldetails.CaseId = caseDetailsEntity.CaseId;
-                                    modeldetails.RemedyId = item1.RemedyId;
-                                    modeldetails.RemedyIndex = item1.RemedyIndex;
-                                    context.CaseDetailRemedy.Add(modeldetails);
-                                    context.SaveChanges();
+                else
+                {
+                    caseDetailsEntity = context.CaseDetails.FirstOrDefault(x =>
+                        x.CaseDetailId == item.CaseDetailId && x.CaseId == item.CaseId);
+                    if (caseDetailsEntity == null)
+                    {
+                        errorResponseModel.StatusCode = HttpStatusCode.NotFound;
+                        errorResponseModel.Message = "Case detail not found";
+                        return null;
+                    }
+                    caseDetailsEntity.SubsectionId = item.SubsectionId;
+                    caseDetailsEntity.IntensityId = item.IntensityId;
+                    caseDetailsEntity.RemedyCount = item.RemedyCount;
+                    context.SaveChanges();
+                }
 
-                                }
-                        }
-
+                if (casedetailsModel.IndexOf(item) == casedetailsModel.Count - 1 && item.ModelEx != null)
+                {
+                    foreach (var item1 in item.ModelEx)
+                    {
+                        var modeldetails = new CaseDetailRemedy();
+                        modeldetails.CaseId = caseDetailsEntity.CaseId;
+                        modeldetails.RemedyId = item1.RemedyId;
+                        modeldetails.RemedyIndex = item1.RemedyIndex;
+                        context.CaseDetailRemedy.Add(modeldetails);
+                        context.SaveChanges();
+                    }
+                }
             }
             Message = "Case Details Saved Successfully";
 

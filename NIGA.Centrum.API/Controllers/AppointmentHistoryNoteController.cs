@@ -45,14 +45,19 @@ namespace NIGA.Centrum.API.Controllers
             {
                 var appointmentHistoryNote = _appointmentHistoryNote.GetAppointmentHistoryNoteById(historyNoteId, ref errorResponseModel);
 
-                if (appointmentHistoryNote != null)
+                if (appointmentHistoryNote == null)
                 {
-                    var deny = ForbidAppointmentIfNotOwner(appointmentHistoryNote.AppointmentId);
-                    if (deny != null)
-                        return deny;
-                    return Ok(appointmentHistoryNote);
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = errorResponseModel?.Message ?? "Appointment history note not found."
+                    });
                 }
-                return ReturnErrorResponse(errorResponseModel);
+
+                var deny = ForbidAppointmentIfNotOwner(appointmentHistoryNote.AppointmentId);
+                if (deny != null)
+                    return deny;
+                return Ok(appointmentHistoryNote);
             }
             catch (Exception ex)
             {

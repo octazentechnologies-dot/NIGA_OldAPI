@@ -214,12 +214,17 @@ namespace NIGA.Centrum.API.Controllers
 
                 var errorMessage = new ErrorResponseModel();
                 var userModel = _patientService.SaveComplaints(model, ref errorMessage);
-                if (userModel != "")
+                if (!string.IsNullOrEmpty(userModel))
                 {
                     return Ok(userModel);
                 }
-                return ReturnErrorResponse(errorMessage);
-
+                if (errorMessage?.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    return NotFound(new { success = false, message = errorMessage.Message ?? "Case not found for this patient." });
+                return BadRequest(errorMessage?.Message ?? "Complaints could not be saved.");
+            }
+            catch (NullReferenceException)
+            {
+                return BadRequest("Invalid complaints payload.");
             }
             catch (Exception ex)
             {

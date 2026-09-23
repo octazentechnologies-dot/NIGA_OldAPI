@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NIGA.Centrum.Model;
 using System;
+using System.Data.SqlClient;
 using NIGA.Centrum.Business.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
@@ -358,6 +359,14 @@ namespace Niga_Domain.API.Controllers
             }
             catch (Exception ex)
             {
+                if (IsSqlTimeout(ex))
+                {
+                    return StatusCode(503, new
+                    {
+                        success = false,
+                        message = "Login timed out. Please try again."
+                    });
+                }
                 return StatusCode(500, new
                 {
                     success = false,
@@ -366,6 +375,19 @@ namespace Niga_Domain.API.Controllers
                     exceptionType = ex.GetType().FullName
                 });
             }
+        }
+
+        private static bool IsSqlTimeout(Exception ex)
+        {
+            for (var e = ex; e != null; e = e.InnerException)
+            {
+                if (e is SqlException sql && (sql.Number == -2 || sql.Number == -1))
+                    return true;
+                if (!string.IsNullOrEmpty(e.Message)
+                    && e.Message.IndexOf("Timeout expired", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            return false;
         }
 
 

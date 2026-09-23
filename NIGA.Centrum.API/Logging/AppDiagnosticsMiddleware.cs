@@ -17,6 +17,7 @@ namespace NIGA.Centrum.API.Logging
 
         public async Task Invoke(HttpContext context)
         {
+            ApplyCorrelation(context);
             AppFileLog.SetRequestSnapshot(RequestDetails(context, null, 0));
             var sw = Stopwatch.StartNew();
             try
@@ -25,18 +26,26 @@ namespace NIGA.Centrum.API.Logging
                 sw.Stop();
                 var status = context.Response != null ? context.Response.StatusCode : 0;
                 var path = context.Request.Path.Value ?? "";
+                if (IsSkipped(path))
+                    return;
                 if (status >= 400)
                 {
-                    var level = status >= 500 ? "ERROR" : "WARN";
-                    var kind = status >= 500 ? "errors" : "api";
+                    var level = status >= 500 && status != 503 ? "ERROR" : "WARN";
+                    var kind = level == "ERROR" ? "errors" : "api";
                     AppFileLog.Write(kind, level, "Http",
-                        status + " " + context.Request.Method + " " + path + context.Request.QueryString + " " + sw.ElapsedMilliseconds + "ms",
+                        status + " " + context.Request.Method + " " + path + context.Request.QueryString + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
                         null,
                         RequestDetails(context, status, sw.ElapsedMilliseconds));
                 }
-                else if (status < 400 && IsMutating(context.Request.Method) && !IsNoisy(path))
+                else if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase))
                 {
-                    AppFileLog.Audit(context.Request.Method + " " + path, "Http", null, null);
+                    AppFileLog.Write("api", "INFO", "Http",
+                        status + " " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
+                        null,
+                        RequestDetails(context, status, sw.ElapsedMilliseconds),
+                        false);
+                    if (IsMutating(context.Request.Method) && !IsNoisy(path))
+                        AppFileLog.Audit(context.Request.Method + " " + path, "Http", null, null);
                 }
             }
             catch (Exception ex)
@@ -44,15 +53,44 @@ namespace NIGA.Centrum.API.Logging
                 sw.Stop();
                 var path = context.Request.Path.Value ?? "";
                 AppFileLog.Write("errors", "ERROR", "Http",
-                    "UNHANDLED " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms",
+                    "UNHANDLED " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
                     ex,
                     RequestDetails(context, 500, sw.ElapsedMilliseconds));
-                throw;
+                await ApiProblem.WriteAsync(context, 500, "Something went wrong. Please try again.");
             }
             finally
             {
                 AppFileLog.ClearRequestSnapshot();
             }
+        }
+
+        private static void ApplyCorrelation(HttpContext context)
+        {
+            var incoming = context.Request.Headers["X-Correlation-Id"].ToString();
+            if (IsSafeTrace(incoming))
+                context.TraceIdentifier = incoming.Trim();
+            context.Response.OnStarting(() =>
+            {
+                context.Response.Headers["X-Correlation-Id"] = context.TraceIdentifier ?? "";
+                return Task.CompletedTask;
+            });
+        }
+
+        private static bool IsSafeTrace(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length > 80) return false;
+            foreach (var ch in value.Trim())
+            {
+                if (!(char.IsLetterOrDigit(ch) || ch == '-' || ch == '_')) return false;
+            }
+            return true;
+        }
+
+        private static bool IsSkipped(string path)
+        {
+            return path.StartsWith("/health", StringComparison.OrdinalIgnoreCase)
+                || path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase)
+                || path.IndexOf("/Diagnostics", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         public static Dictionary<string, string> RequestDetails(HttpContext context, int? status, long elapsedMs)

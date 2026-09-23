@@ -202,16 +202,43 @@ namespace NIGA.Centrum.Business.Implementation
         /// <returns></returns>
         public string SaveComplaints(PatientModel patient, ref ErrorResponseModel errorResponseModel)
         {
-            string Message = "";
-            var CaseEntry = context.CaseEntryDetails.Where(x => x.PatientId == patient.PatientID).FirstOrDefault();
-            foreach (var item in patient.ChiefComplaintIds.Split(','))
+            errorResponseModel = new ErrorResponseModel();
+            if (patient == null || string.IsNullOrWhiteSpace(patient.ChiefComplaintIds))
             {
+                errorResponseModel.StatusCode = HttpStatusCode.BadRequest;
+                errorResponseModel.Message = "ChiefComplaintIds is required";
+                return "";
+            }
+
+            var CaseEntry = context.CaseEntryDetails.Where(x => x.PatientId == patient.PatientID).FirstOrDefault();
+            if (CaseEntry == null)
+            {
+                errorResponseModel.StatusCode = HttpStatusCode.NotFound;
+                errorResponseModel.Message = "Case not found for this patient";
+                return "";
+            }
+
+            string Message = "";
+            foreach (var item in patient.ChiefComplaintIds.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0))
+            {
+                var already = context.CaseEntryChiefComplaint.Any(x =>
+                    x.CaseId == CaseEntry.CaseId && x.ChiefComplaintName == item);
+                if (already)
+                {
+                    Message = "Complaints Saved Successfully";
+                    continue;
+                }
                 var caseEntryChiefComplaint = new CaseEntryChiefComplaint();
                 caseEntryChiefComplaint.ChiefComplaintName = item;
                 caseEntryChiefComplaint.CaseId = CaseEntry.CaseId;
                 context.CaseEntryChiefComplaint.Add(caseEntryChiefComplaint);
                 context.SaveChanges();
                 Message = "Complaints Saved Successfully";
+            }
+            if (string.IsNullOrEmpty(Message))
+            {
+                errorResponseModel.StatusCode = HttpStatusCode.BadRequest;
+                errorResponseModel.Message = "ChiefComplaintIds is required";
             }
             return Message;
         }

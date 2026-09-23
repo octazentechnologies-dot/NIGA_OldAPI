@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NIGA.Centrum.Business.Implementation;
@@ -29,6 +30,12 @@ namespace NIGA.Centrum.API.Logging
         private static SmtpSettingsModel _smtp;
 
         public static string LogsDirectory { get { return _root; } }
+
+        /// <summary>Logs/22-Sep-2026 — one folder per local calendar day.</summary>
+        public static string DayDirectory(DateTime day)
+        {
+            return Path.Combine(_root, day.ToString("dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture));
+        }
         public static bool IsFileEnabled { get { return _fileEnabled; } }
         public static bool IsAlertEnabled { get { return _alertEnabled; } }
         public static bool IsDailyMatrixEnabled { get { return _dailyMatrixEnabled; } }
@@ -71,8 +78,9 @@ namespace NIGA.Centrum.API.Logging
             if (_fileEnabled)
             {
                 Directory.CreateDirectory(_root);
+                MoveTodayFilesIntoDayFolder();
                 Write("app", "INFO", "AppFileLog",
-                    "File logging started at " + _root + " FileLog.Enabled=" + _fileEnabled + " ErrorAlert.Enabled=" + _alertEnabled,
+                    "File logging started at " + DayDirectory(DateTime.Now) + " FileLog.Enabled=" + _fileEnabled + " ErrorAlert.Enabled=" + _alertEnabled,
                     null, null, false);
             }
         }
@@ -99,8 +107,10 @@ namespace NIGA.Centrum.API.Logging
                 details = MergeSnapshot(details);
                 if (_fileEnabled)
                 {
-                    Directory.CreateDirectory(_root);
-                    var day = DateTime.Now.ToString("yyyyMMdd");
+                    var now = DateTime.Now;
+                    var folder = DayDirectory(now);
+                    Directory.CreateDirectory(folder);
+                    var day = now.ToString("yyyyMMdd");
                     var line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\t" + level + "\t" + category + "\t" + Sanitize(message);
                     if (details != null)
                     {
@@ -113,14 +123,14 @@ namespace NIGA.Centrum.API.Logging
                     }
                     if (ex != null)
                         line += Environment.NewLine + ex;
+                    var type = LogFileType(kind, category);
                     lock (Gate)
                     {
-                        File.AppendAllText(Path.Combine(_root, "niga-all-" + day + ".log"), line + Environment.NewLine);
-                        File.AppendAllText(Path.Combine(_root, "niga-" + kind + "-" + day + ".log"), line + Environment.NewLine);
+                        File.AppendAllText(Path.Combine(folder, LogFileName(type, day)), line + Environment.NewLine);
                     }
                 }
 
-                if (sendAlert && IsFailureLevel(level))
+                if (sendAlert && IsFailureLevel(level) && !ShouldSkipAlert(category, message, ex, details))
                     TryEmail(level, category, message, ex, details);
             }
             catch
@@ -146,7 +156,7 @@ namespace NIGA.Centrum.API.Logging
                 { "OccurredAtLocal", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") },
                 { "OccurredAtUtc", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff") + "Z" },
                 { "ServerTimeZone", TimeZoneInfo.Local.DisplayName },
-                { "LogsDirectory", _root }
+                { "LogsDirectory", DayDirectory(DateTime.Now) }
             };
         }
 
@@ -174,6 +184,29 @@ namespace NIGA.Centrum.API.Logging
                 || string.Equals(level, "FAIL", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static bool ShouldSkipAlert(string category, string message, Exception ex, IDictionary<string, string> details)
+        {
+            var text = (message ?? "") + " " + (ex != null ? ex.Message : "") + " " + (ex != null ? ex.GetType().Name : "");
+            if (text.IndexOf("address already in use", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (text.IndexOf("Unable to start Kestrel", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (text.IndexOf("BackgroundService failed", StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (ex is OperationCanceledException || ex is TaskCanceledException)
+                return true;
+            if (!string.IsNullOrEmpty(category) && category.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (details != null && details.TryGetValue("Status", out var status) && status == "503")
+            {
+                var path = details.ContainsKey("Path") ? details["Path"] : "";
+                if (path.IndexOf("/Payments/Webhook", StringComparison.OrdinalIgnoreCase) >= 0
+                    || text.IndexOf("GATEWAY_NOT_CONFIGURED", StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
         private static string Sanitize(string text)
         {
             if (string.IsNullOrEmpty(text)) return "";
@@ -185,7 +218,12 @@ namespace NIGA.Centrum.API.Logging
             if (!_alertEnabled || _recipients == null || _recipients.Length == 0 || _smtp == null)
                 return;
 
-            var key = (level + "|" + category + "|" + (message ?? "")).GetHashCode().ToString();
+            string traceId = null;
+            if (details != null)
+                details.TryGetValue("TraceId", out traceId);
+            var key = !string.IsNullOrWhiteSpace(traceId)
+                ? ("trace|" + traceId.Trim())
+                : (level + "|" + category + "|" + (message ?? ""));
             var cooldown = TimeSpan.FromMinutes(_cooldownMinutes <= 0 ? 10 : _cooldownMinutes);
             var now = DateTime.UtcNow;
             DateTime prev;
@@ -355,9 +393,8 @@ namespace NIGA.Centrum.API.Logging
             shown.Add("Level");
             shown.Add("Category");
 
-            AppendPreBlock(sb, "Error log (niga-errors, latest)", ReadKindTail("errors", 80, 12000), "#0f172a", "#e2e8f0");
-            AppendPreBlock(sb, "Audit log (niga-audit, latest)", ReadKindTail("audit", 80, 12000), "#0f172a", "#e2e8f0");
-            AppendPreBlock(sb, "App log (niga-app, latest)", ReadKindTail("app", 60, 8000), "#0f172a", "#e2e8f0");
+            AppendPreBlock(sb, "API log (Homeocentrum_api, latest)", ReadKindTail("api", 80, 12000), "#0f172a", "#e2e8f0");
+            AppendPreBlock(sb, "Other log (Homeocentrum_other, latest)", ReadKindTail("other", 60, 8000), "#0f172a", "#e2e8f0");
 
             var leftover = details
                 .Where(kv => !shown.Contains(kv.Key) && !string.IsNullOrWhiteSpace(kv.Value))
@@ -485,15 +522,29 @@ namespace NIGA.Centrum.API.Logging
             return "";
         }
 
+        private static string LogFileName(string type, string day)
+        {
+            return "Homeocentrum_" + type + "_" + day + ".log";
+        }
+
+        private static string LogFileType(string kind, string category)
+        {
+            if (string.Equals(category, "UI", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(kind, "ui", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(kind, "other", StringComparison.OrdinalIgnoreCase))
+                return "other";
+            return "api";
+        }
+
         private static string ReadKindTail(string kind, int maxLines, int maxBytes)
         {
             try
             {
                 if (!_fileEnabled) return "File logging is disabled.";
                 var day = DateTime.Now.ToString("yyyyMMdd");
-                var path = Path.Combine(_root, "niga-" + kind + "-" + day + ".log");
+                var path = Path.Combine(DayDirectory(DateTime.Now), LogFileName(kind, day));
                 if (!File.Exists(path))
-                    return "No niga-" + kind + "-" + day + ".log for today.";
+                    return "No " + LogFileName(kind, day) + " for today.";
                 using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
                     if (fs.Length > maxBytes)
@@ -505,13 +556,40 @@ namespace NIGA.Centrum.API.Logging
                         var take = lines.Length < maxLines ? lines.Length : maxLines;
                         var start = lines.Length - take;
                         var body = string.Join("\n", lines, start, take).Trim();
-                        return string.IsNullOrWhiteSpace(body) ? "niga-" + kind + " log is empty today." : body;
+                        return string.IsNullOrWhiteSpace(body) ? "Homeocentrum_" + kind + " log is empty today." : body;
                     }
                 }
             }
             catch (Exception ex)
             {
-                return "Could not read niga-" + kind + " log: " + ex.Message;
+                return "Could not read Homeocentrum_" + kind + " log: " + ex.Message;
+            }
+        }
+
+        /// <summary>Files already written in Logs/ today move into Logs/dd-MMM-yyyy/.</summary>
+        private static void MoveTodayFilesIntoDayFolder()
+        {
+            try
+            {
+                var day = DateTime.Now.ToString("yyyyMMdd");
+                var folder = DayDirectory(DateTime.Now);
+                Directory.CreateDirectory(folder);
+                foreach (var path in Directory.GetFiles(_root, "niga-*-" + day + ".log").Concat(Directory.GetFiles(_root, "Homeocentrum_*_" + day + ".log")))
+                {
+                    var dest = Path.Combine(folder, Path.GetFileName(path));
+                    if (File.Exists(dest))
+                    {
+                        File.AppendAllText(dest, File.ReadAllText(path));
+                        File.Delete(path);
+                    }
+                    else
+                    {
+                        File.Move(path, dest);
+                    }
+                }
+            }
+            catch
+            {
             }
         }
 

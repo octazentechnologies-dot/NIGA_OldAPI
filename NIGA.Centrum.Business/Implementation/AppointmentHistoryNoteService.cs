@@ -61,6 +61,7 @@ namespace NIGA.Centrum.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Appointment History Note not found";
+                return null;
             }
             return new AppointmentHistoryNoteModel
             {
