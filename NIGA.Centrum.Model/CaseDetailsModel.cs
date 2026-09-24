@@ -14,7 +14,10 @@ namespace NIGA.Centrum.Model
         public int CaseDetailId { get; set; }
         public int? CaseId { get; set; }
         public int? SubsectionId { get; set; }
+        public string SubsectionName { get; set; }
         public int? IntensityId { get; set; }
+        public int? IntensityNo { get; set; }
+        public string IntensityDescription { get; set; }
         public int? RemedyCount { get; set; }
         public int? RemedyId { get; set; }
         public int? RemedyIndex { get; set; }

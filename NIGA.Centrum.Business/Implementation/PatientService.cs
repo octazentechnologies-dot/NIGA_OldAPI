@@ -321,17 +321,36 @@ namespace NIGA.Centrum.Business.Implementation
             }
 
             doctorId = caseRow.DoctorId;
-            return context.CaseDetails
-                .Where(d => d.CaseId == caseId)
-                .Select(d => new CaseDetailsModel
+            var rows = context.CaseDetails.Where(d => d.CaseId == caseId).ToList();
+            var subIds = rows.Where(d => d.SubsectionId.HasValue).Select(d => d.SubsectionId.Value).Distinct().ToList();
+            var intensityIds = rows.Where(d => d.IntensityId.HasValue).Select(d => d.IntensityId.Value).Distinct().ToList();
+            var subsections = context.SubSectionMaster
+                .Where(s => subIds.Contains(s.SubSectionId))
+                .ToDictionary(s => s.SubSectionId, s => s.SubSectionName);
+            var intensities = context.IntensityMaster
+                .Where(i => intensityIds.Contains(i.IntensityId))
+                .ToDictionary(i => i.IntensityId);
+
+            return rows.Select(d =>
+            {
+                IntensityMaster intensity = null;
+                if (d.IntensityId.HasValue)
+                    intensities.TryGetValue(d.IntensityId.Value, out intensity);
+                string subsectionName = null;
+                if (d.SubsectionId.HasValue)
+                    subsections.TryGetValue(d.SubsectionId.Value, out subsectionName);
+                return new CaseDetailsModel
                 {
                     CaseDetailId = d.CaseDetailId,
                     CaseId = d.CaseId,
                     SubsectionId = d.SubsectionId,
+                    SubsectionName = subsectionName,
                     IntensityId = d.IntensityId,
+                    IntensityNo = intensity == null ? (int?)null : intensity.IntensityNo,
+                    IntensityDescription = intensity == null ? null : intensity.Description,
                     RemedyCount = d.RemedyCount
-                })
-                .ToList();
+                };
+            }).ToList();
         }
 
         private void BindLastVisitAt(List<PatientModel> patients)
