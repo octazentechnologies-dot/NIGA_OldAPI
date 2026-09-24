@@ -435,3 +435,5 @@ publish-*/
 # Stale solution name after rename to Homeocentrum.Niga.OldAPI.sln
 NIGA.Centrum.sln
 
+/Homeocentrum.Niga.OldAPI/.DS_Store
+/Homeocentrum.Niga.OldAPI.Business/.DS_Store

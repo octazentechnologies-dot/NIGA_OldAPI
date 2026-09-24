@@ -129,7 +129,9 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                 : "<p class=\"err\">" + System.Net.WebUtility.HtmlEncode(error) + "</p>";
             return "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
                 + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-                + "<title>" + System.Net.WebUtility.HtmlEncode(apiName) + "</title><style>"
+                + "<title>" + System.Net.WebUtility.HtmlEncode(apiName) + "</title>"
+                + "<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />"
+                + "<link rel=\"shortcut icon\" href=\"/favicon.ico\" /><style>"
                 + "body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#e8eef5;font-family:Segoe UI,Arial,sans-serif;color:#0f172a}"
                 + ".card{width:420px;max-width:92vw;background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(15,23,42,.12);padding:28px}"
                 + "h1{margin:0;font-size:22px}.sub{margin:6px 0 18px;color:#475569;font-size:14px}"

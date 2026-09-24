@@ -249,6 +249,7 @@ namespace Homeocentrum.Niga.OldAPI
 
             app.UseCors("AllowAllOrigins");
 
+            app.UseHomeocentrumFavicon();
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
             {
@@ -269,6 +270,13 @@ namespace Homeocentrum.Niga.OldAPI
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Homeocentrum Old API");
                 c.DocumentTitle = "Homeocentrum Old API";
+                c.HeadContent =
+                    "<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />" +
+                    "<link rel=\"shortcut icon\" href=\"/favicon.ico\" />" +
+                    "<script>document.addEventListener('DOMContentLoaded',function(){" +
+                    "document.querySelectorAll('link[rel*=\"icon\"]').forEach(function(el){el.parentNode.removeChild(el);});" +
+                    "var l=document.createElement('link');l.rel='icon';l.type='image/png';l.href='/favicon.png?v=hc';document.head.appendChild(l);" +
+                    "});</script>";
             });
             ////up to
         }
