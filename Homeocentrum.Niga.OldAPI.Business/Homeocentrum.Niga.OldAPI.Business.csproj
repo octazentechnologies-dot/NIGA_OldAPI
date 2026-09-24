@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AssemblyName>Homeocentrum.Niga.OldAPI.Business</AssemblyName>
+    <RootNamespace>Homeocentrum.Niga.OldAPI.Business</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Homeocentrum.Niga.OldAPI.Common\Homeocentrum.Niga.OldAPI.Common.csproj" />
+    <ProjectReference Include="..\Homeocentrum.Niga.OldAPI.Entity\Homeocentrum.Niga.OldAPI.Entity.csproj" />
+    <ProjectReference Include="..\Homeocentrum.Niga.OldAPI.Model\Homeocentrum.Niga.OldAPI.Model.csproj" />
+  </ItemGroup>
+
+</Project>

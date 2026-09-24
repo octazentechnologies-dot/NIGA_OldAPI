@@ -1,0 +1,447 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Homeocentrum.Niga.OldAPI</name>
+    </assembly>
+    <members>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.BaseAPIController">
+            <summary>
+            Perform call action required for all controllers 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.BaseAPIController.ReturnErrorResponse(Homeocentrum.Niga.OldAPI.Model.ErrorResponseModel,System.String)">
+            <summary>
+            This will create an error response as per status
+            </summary>
+            <param name="model"></param>
+            <param name="customErrorMessage"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.CountryController">
+            <summary>
+            APIs for Country entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.CountryController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.ICountryService)">
+            <summary>
+            Used to initialize controller and inject country service
+            </summary>
+            <param name="countryService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.CountryController.GetCountryById(System.Int64)">
+            <summary>
+            To get country by Country ID 
+            </summary>
+            <param name="countryId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.CountryController.GetCountries">
+            <summary>
+            To Get all counrriecountries
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController">
+            <summary>
+            APIs for Diagnosis entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IDiagnosisService)">
+            <summary>
+            Used to initialize controller and inject diagnosis service
+            </summary>
+            <param name="diagnosisService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController.GetDiagnosisById(System.Int64)">
+            <summary>
+            To get diagnosis by Diagnosis ID 
+            </summary>
+            <param name="diagnosisId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController.GetDiagnosis">
+            <summary>
+            To get all diagnosis
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController.SaveDiagnosis(Homeocentrum.Niga.OldAPI.Model.DiagnosisModel)">
+            <summary>
+            To add new diagnosis 
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisController.DeleteDiagnosis(Homeocentrum.Niga.OldAPI.Model.DiagnosisModel)">
+            <summary>
+            To delete diagnosis 
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController">
+            <summary>
+            APIs for Diagnosis Group entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IDiagnosisGroupService)">
+            <summary>
+            Used to initialize controller and inject diagnosis group service
+            </summary>
+            <param name="diagnosisgroupService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.GetDiagnosisGroupById(System.Int64)">
+            <summary>
+            To get diagnosis group by DiagnosisGroup ID 
+            </summary>
+            <param name="diagnosisgroupId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.GetDiagnosisGroups">
+            <summary>
+            To get all diagnosis group
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.SaveDiagnosisGroups(Homeocentrum.Niga.OldAPI.Model.DiagnosisGroupModel)">
+            <summary>
+            To get all diagnosis group
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.DeleteDiagnosisGroup(Homeocentrum.Niga.OldAPI.Model.DiagnosisGroupModel)">
+            <summary>
+            To get all diagnosis group
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.DiagnosisGroupController.GetDiagnosis">
+            <summary>
+            To get all diagnosis group
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.GenderController">
+            <summary>
+            APIs for gender entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.GenderController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IGenderService)">
+            <summary>
+            Used to initialize controller and inject gender service
+            </summary>
+            <param name="genderService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.GenderController.GetGenderById(System.Int64)">
+            <summary>
+            To get gender by Gender ID 
+            </summary>
+            <param name="genderId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.IntensityController">
+            <summary>
+            APIs for Intensity entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.IntensityController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IIntensityService)">
+            <summary>
+            Used to initialize controller and inject country service
+            </summary>
+            <param name="intensityService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.IntensityController.GetIntensityById(System.Int64)">
+            <summary>
+            To get intensity by Intensity ID 
+            </summary>
+            <param name="intensityId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController">
+            <summary>
+            APIs for master entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IMastersAPIService)">
+            <summary>
+            Used to initialize controller and inject master service
+            </summary>
+            <param name="mastersAPIService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetStates">
+            <summary>
+            To get all states
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetCountries">
+            <summary>
+            To get all countries
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetGenders">
+            <summary>
+            To get all genders
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetPackages">
+            <summary>
+            To get all packages
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetQualifications">
+            <summary>
+            To get all qualifications
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetDiagnosisGroups">
+            <summary>
+            To get all diagnosisgroups
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetDiagnosis">
+            <summary>
+            To get all diagnosis
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetSections">
+            <summary>
+            To get all sections
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetSubSections">
+            <summary>
+            To get all subsections
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetRemedies">
+            <summary>
+            To get all remedies
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetIntensities">
+            <summary>
+            To get all intensities
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.MastersAPIController.GetRemedyGrades">
+            <summary>
+            To get all remedygrades
+            </summary>
+            <param name=""></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.PackageController">
+            <summary>
+            APIs for package entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.PackageController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IPackageService)">
+            <summary>
+            Used to initialize controller and inject packge service
+            </summary>
+            <param name="packageService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.PackageController.GetGenderById(System.Int64)">
+            <summary>
+            To get package by Package ID 
+            </summary>
+            <param name="packageId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.PatientController">
+            <summary>
+            API's for Patient entity
+            </summary>
+            
+            <summary>
+            APIs for User entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.PatientController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IPatientService)">
+            <summary>
+            Used to initialize controller and inject patient Service
+            </summary>
+            <param name="patientService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.PatientController.GetCases(System.Int64)">
+            <summary>
+            To Get all Case entries of a doctor
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.PatientController.Post(Homeocentrum.Niga.OldAPI.Model.PatientModel)">
+            <summary>
+            Create new Patient
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.QualificationController">
+            <summary>
+            APIs for Qualification entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.QualificationController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IQualificationService)">
+            <summary>
+            Used to initialize controller and inject qualification service
+            </summary>
+            <param name="qualificationService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.QualificationController.GetQualificationById(System.Int64)">
+            <summary>
+            To get qualification by Qualification ID 
+            </summary>
+            <param name="qualificationId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.RemedyController">
+            <summary>
+            APIs for Remedy entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.RemedyController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IRemedyService)">
+            <summary>
+            Used to initialize controller and inject remedy service
+            </summary>
+            <param name="remedyService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.RemedyController.GetRemedyById(System.Int64)">
+            <summary>
+            To get remedy by Remedy ID 
+            </summary>
+            <param name="remedyId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.RemedyGradeController">
+            <summary>
+            APIs for Remedy grade entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.RemedyGradeController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IRemedyGradeService)">
+            <summary>
+            Used to initialize controller and inject remedy grade service
+            </summary>
+            <param name="remedygradeService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.RemedyGradeController.GetRemedyGradeById(System.Int64)">
+            <summary>
+            To get remedy grade by RemedyGrade ID 
+            </summary>
+            <param name="remedygradeId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.SectionController">
+            <summary>
+            APIs for Section entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.SectionController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.ISectionService)">
+            <summary>
+            Used to initialize controller and inject section service
+            </summary>
+            <param name="sectionService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.SectionController.GetSectionById(System.Int64)">
+            <summary>
+            To get section by Section ID 
+            </summary>
+            <param name="sectionId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.StateController">
+            <summary>
+            APIs for State entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.StateController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IStateService)">
+            <summary>
+            Used to initialize controller and inject state service
+            </summary>
+            <param name="stateService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.StateController.GetStatteById(System.Int64)">
+            <summary>
+            To get state by State ID 
+            </summary>
+            <param name="stateId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.StateController.GetStates">
+            <summary>
+            To get state by State ID 
+            </summary>
+            <param name="stateId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.SubSectionController">
+            <summary>
+            APIs for SubSection entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.SubSectionController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.ISubSectionService)">
+            <summary>
+            Used to initialize controller and inject subsection service
+            </summary>
+            <param name="subsectionService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.SubSectionController.GetSubSectionById(System.Int64)">
+            <summary>
+            To get subsection by SubSection ID 
+            </summary>
+            <param name="subsectionId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Homeocentrum.Niga.OldAPI.Controllers.UsersController">
+            <summary>
+            APIs for User entity 
+            </summary>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.UsersController.#ctor(Homeocentrum.Niga.OldAPI.Business.Interface.IUserService)">
+            <summary>
+            Used to initialize controller and inject user service
+            </summary>
+            <param name="userService"></param>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.UsersController.Get(System.Int64)">
+            <summary>
+            To get user by User ID 
+            </summary>
+            <param name="userId"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Homeocentrum.Niga.OldAPI.Controllers.UsersController.Post(Homeocentrum.Niga.OldAPI.Model.UserModel)">
+            <summary>
+            Create an user
+            </summary>
+            <param name="model"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

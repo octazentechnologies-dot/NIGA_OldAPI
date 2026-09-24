@@ -431,3 +431,7 @@ FodyWeavers.xsd
 # Local publish output
 publish/
 publish-*/
+
+# Stale solution name after rename to Homeocentrum.Niga.OldAPI.sln
+NIGA.Centrum.sln
+
