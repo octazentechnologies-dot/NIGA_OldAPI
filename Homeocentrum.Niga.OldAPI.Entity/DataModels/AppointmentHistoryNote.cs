@@ -8,6 +8,8 @@ namespace Homeocentrum.Niga.OldAPI.Entity.DataModels
         public int HistoryId { get; set; }
         public int? AppointmentId { get; set; }
         public string HistoryNote { get; set; }
+        public string NoteType { get; set; }
+        public bool IsErxExcluded { get; set; } = true;
         public bool? DeletedStatus { get; set; }
         public int? CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }

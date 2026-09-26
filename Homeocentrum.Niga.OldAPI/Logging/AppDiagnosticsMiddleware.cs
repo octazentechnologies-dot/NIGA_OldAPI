@@ -39,11 +39,13 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                 }
                 else if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase))
                 {
-                    AppFileLog.Write("api", "INFO", "Http",
+                    var slow = AppFileLog.SlowRequestMilliseconds;
+                    var isSlow = slow > 0 && sw.ElapsedMilliseconds >= slow;
+                    AppFileLog.Write(isSlow ? "perf" : "api", isSlow ? "WARN" : "INFO", isSlow ? "Performance" : "Http",
                         status + " " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
                         null,
                         RequestDetails(context, status, sw.ElapsedMilliseconds),
-                        false);
+                        isSlow);
                     if (IsMutating(context.Request.Method) && !IsNoisy(path))
                         AppFileLog.Audit(context.Request.Method + " " + path, "Http", null, null);
                 }
@@ -90,6 +92,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         {
             return path.StartsWith("/health", StringComparison.OrdinalIgnoreCase)
                 || path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase)
+                || path.Equals("/json/version", StringComparison.OrdinalIgnoreCase)
                 || path.IndexOf("/Diagnostics", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 

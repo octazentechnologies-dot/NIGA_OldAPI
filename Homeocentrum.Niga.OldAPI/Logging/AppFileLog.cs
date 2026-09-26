@@ -25,7 +25,9 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         private static bool _fileEnabled = true;
         private static bool _alertEnabled = true;
         private static bool _dailyMatrixEnabled = true;
-        private static int _cooldownMinutes = 10;
+        private static int _cooldownMinutes = 0;
+        private static bool _alertOnWarn = true;
+        private static int _slowRequestMs = 3000;
         private static string[] _recipients = Array.Empty<string>();
         private static SmtpSettingsModel _smtp;
 
@@ -39,6 +41,8 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         public static bool IsFileEnabled { get { return _fileEnabled; } }
         public static bool IsAlertEnabled { get { return _alertEnabled; } }
         public static bool IsDailyMatrixEnabled { get { return _dailyMatrixEnabled; } }
+        public static bool IsWarnAlertEnabled { get { return _alertOnWarn; } }
+        public static int SlowRequestMilliseconds { get { return _slowRequestMs > 0 ? _slowRequestMs : 3000; } }
 
         public static void SetRequestSnapshot(Dictionary<string, string> details)
         {
@@ -68,6 +72,12 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                 var cool = config["ErrorAlert:CooldownMinutes"];
                 if (!string.IsNullOrEmpty(cool))
                     int.TryParse(cool, out _cooldownMinutes);
+                var warn = config["ErrorAlert:AlertOnWarn"];
+                if (!string.IsNullOrEmpty(warn))
+                    bool.TryParse(warn, out _alertOnWarn);
+                var slow = config["ErrorAlert:SlowRequestMs"];
+                if (!string.IsNullOrEmpty(slow))
+                    int.TryParse(slow, out _slowRequestMs);
                 _recipients = config.GetSection("ErrorAlert:Recipients").GetChildren()
                     .Select(c => c.Value)
                     .Where(v => !string.IsNullOrWhiteSpace(v))
@@ -179,9 +189,13 @@ namespace Homeocentrum.Niga.OldAPI.Logging
 
         private static bool IsFailureLevel(string level)
         {
-            return string.Equals(level, "ERROR", StringComparison.OrdinalIgnoreCase)
+            if (string.Equals(level, "ERROR", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(level, "CRITICAL", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(level, "FAIL", StringComparison.OrdinalIgnoreCase);
+                || string.Equals(level, "FAIL", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (_alertOnWarn && string.Equals(level, "WARN", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
         }
 
         private static bool ShouldSkipAlert(string category, string message, Exception ex, IDictionary<string, string> details)
@@ -197,12 +211,25 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                 return true;
             if (!string.IsNullOrEmpty(category) && category.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.OrdinalIgnoreCase))
                 return true;
-            if (details != null && details.TryGetValue("Status", out var status) && status == "503")
+            if (details != null)
             {
-                var path = details.ContainsKey("Path") ? details["Path"] : "";
-                if (path.IndexOf("/Payments/Webhook", StringComparison.OrdinalIgnoreCase) >= 0
-                    || text.IndexOf("GATEWAY_NOT_CONFIGURED", StringComparison.OrdinalIgnoreCase) >= 0)
+                if (details.TryGetValue("Path", out var skipPath)
+                    && skipPath.IndexOf("/json/version", StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
+                details.TryGetValue("Status", out var status);
+                details.TryGetValue("HasBearer", out var hasBearer);
+                details.TryGetValue("Authenticated", out var authenticated);
+                if (status == "401"
+                    && !string.Equals(hasBearer, "yes", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(authenticated, "yes", StringComparison.OrdinalIgnoreCase))
+                    return true;
+                if (status == "503")
+                {
+                    var path = details.ContainsKey("Path") ? details["Path"] : "";
+                    if (path.IndexOf("/Payments/Webhook", StringComparison.OrdinalIgnoreCase) >= 0
+                        || text.IndexOf("GATEWAY_NOT_CONFIGURED", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
             }
             return false;
         }
@@ -224,11 +251,14 @@ namespace Homeocentrum.Niga.OldAPI.Logging
             var key = !string.IsNullOrWhiteSpace(traceId)
                 ? ("trace|" + traceId.Trim())
                 : (level + "|" + category + "|" + (message ?? ""));
-            var cooldown = TimeSpan.FromMinutes(_cooldownMinutes <= 0 ? 10 : _cooldownMinutes);
             var now = DateTime.UtcNow;
-            DateTime prev;
-            if (LastAlert.TryGetValue(key, out prev) && now - prev < cooldown)
-                return;
+            if (_cooldownMinutes > 0)
+            {
+                var cooldown = TimeSpan.FromMinutes(_cooldownMinutes);
+                DateTime prev;
+                if (LastAlert.TryGetValue(key, out prev) && now - prev < cooldown)
+                    return;
+            }
             LastAlert[key] = now;
 
             var merged = BaseDetails();

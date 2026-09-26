@@ -29,6 +29,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 AppointmentHistoryNote appointmentHistoryNoteEntity = new AppointmentHistoryNote();
                 appointmentHistoryNoteEntity.AppointmentId = appointmentHistoryNote.AppointmentId;
                 appointmentHistoryNoteEntity.HistoryNote = appointmentHistoryNote.HistoryNote;
+                appointmentHistoryNoteEntity.NoteType = string.IsNullOrWhiteSpace(appointmentHistoryNote.NoteType) ? "General" : appointmentHistoryNote.NoteType.Trim();
+                appointmentHistoryNoteEntity.IsErxExcluded = appointmentHistoryNote.IsErxExcluded;
                 appointmentHistoryNoteEntity.DeletedStatus = false;
                 appointmentHistoryNoteEntity.CreatedBy = userId;
                 appointmentHistoryNoteEntity.CreatedDate = DateTime.Now;
@@ -44,6 +46,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
 
                     appointmentHistoryNoteEntity.AppointmentId = appointmentHistoryNote.AppointmentId;
                     appointmentHistoryNoteEntity.HistoryNote = appointmentHistoryNote.HistoryNote;
+                    appointmentHistoryNoteEntity.NoteType = string.IsNullOrWhiteSpace(appointmentHistoryNote.NoteType) ? "General" : appointmentHistoryNote.NoteType.Trim();
+                    appointmentHistoryNoteEntity.IsErxExcluded = appointmentHistoryNote.IsErxExcluded;
                     appointmentHistoryNoteEntity.ModifyBy = userId;
                     appointmentHistoryNoteEntity.ModifyDate = DateTime.Now;
                     context.SaveChanges();
@@ -68,6 +72,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 HistoryId = appointmentHistoryNoteEntity.HistoryId,
                 AppointmentId = appointmentHistoryNoteEntity.AppointmentId,
                 HistoryNote = appointmentHistoryNoteEntity.HistoryNote,
+                NoteType = appointmentHistoryNoteEntity.NoteType,
+                IsErxExcluded = appointmentHistoryNoteEntity.IsErxExcluded,
                 CreatedDate = appointmentHistoryNoteEntity.CreatedDate.HasValue ? appointmentHistoryNoteEntity.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm:ss") : string.Empty,
             };
         }
@@ -95,7 +101,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
         /// <param name="nigaParameters"></param>
         /// <param name="errorResponseModel"></param>
         /// <returns></returns>
-        public PaginationResult GetAllAppointmentHistoryNotes(int? appointmentId, NigaParameters nigaParameters, ref ErrorResponseModel errorResponseModel)
+        public PaginationResult GetAllAppointmentHistoryNotes(int? appointmentId, NigaParameters nigaParameters, ref ErrorResponseModel errorResponseModel, int? ownerDoctorId = null)
         {
             errorResponseModel = new ErrorResponseModel();
 
@@ -106,13 +112,18 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             var skip = 0;
 
             var appointmentHistoryNoteList = (from appointmentHistoryNote in context.AppointmentHistoryNote
+                                              join appt in context.PatientAppointment on appointmentHistoryNote.AppointmentId equals appt.PatientAppId into apptJoin
+                                              from appt in apptJoin.DefaultIfEmpty()
                                               where appointmentHistoryNote.DeletedStatus == false
                                               && (appointmentId == null || appointmentId == 0 || appointmentHistoryNote.AppointmentId == appointmentId)
+                                              && (ownerDoctorId == null || ownerDoctorId == 0 || (appt != null && appt.DoctorId == ownerDoctorId.Value))
                                               select new AppointmentHistoryNoteModel
                                               {
                                                   HistoryId = appointmentHistoryNote.HistoryId,
                                                   AppointmentId = appointmentHistoryNote.AppointmentId,
                                                   HistoryNote = appointmentHistoryNote.HistoryNote,
+                                                  NoteType = appointmentHistoryNote.NoteType,
+                                                  IsErxExcluded = appointmentHistoryNote.IsErxExcluded,
                                                   CreatedDate = appointmentHistoryNote.CreatedDate.HasValue ? appointmentHistoryNote.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm:ss") : string.Empty,
                                               }).ToList();
 

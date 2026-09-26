@@ -52,6 +52,11 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 prescriptionRemedyDetailEntity.AppointmentId = prescriptionDetail.AppointmentId;
                 prescriptionRemedyDetailEntity.RemedyId = item.RemedyId;
                 prescriptionRemedyDetailEntity.Description = item.Description;
+                prescriptionRemedyDetailEntity.Dose = item.Dose;
+                prescriptionRemedyDetailEntity.PotencyId = item.PotencyId;
+                prescriptionRemedyDetailEntity.Frequency = item.Frequency;
+                prescriptionRemedyDetailEntity.Duration = item.Duration;
+                prescriptionRemedyDetailEntity.Instructions = item.Instructions;
                 prescriptionRemedyDetailEntity.DeletedStatus = false;
                 prescriptionRemedyDetailEntity.CreatedDate = DateTime.Now;
                 context.PrescriptionRemedyDetail.Add(prescriptionRemedyDetailEntity);
@@ -114,7 +119,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                                                     RemedyId = prescriptionRemedyDetail.RemedyId,
                                                     RemedyName = remedy.RemedyName,
                                                     Description = prescriptionRemedyDetail.Description,
-                                                    Dose = prescriptionRemedyDetail.Dose
+                                                    Dose = prescriptionRemedyDetail.Dose,
+                                                    PotencyId = prescriptionRemedyDetail.PotencyId
                                                 }).ToList();
 
             if (prescriptionRemedyDetailData.Count == 0)

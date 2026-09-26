@@ -10,6 +10,10 @@ namespace Homeocentrum.Niga.OldAPI.Entity.DataModels
         public int RemedyId { get; set; }
         public string Description { get; set; }
         public string Dose { get; set; }
+        public int? PotencyId { get; set; }
+        public string Frequency { get; set; }
+        public string Duration { get; set; }
+        public string Instructions { get; set; }
         public bool? DeletedStatus { get; set; }
         public DateTime? CreatedDate { get; set; }
 

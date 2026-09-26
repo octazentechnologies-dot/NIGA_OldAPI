@@ -40,7 +40,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Interface
         /// <param name="nigaParameters"></param>
         /// <param name="errorResponseModel"></param>
         /// <returns></returns>
-        PaginationResult GetAllAppointmentHistoryNotes(int? appointmentId, NigaParameters nigaParameters, ref ErrorResponseModel errorResponseModel);
+        PaginationResult GetAllAppointmentHistoryNotes(int? appointmentId, NigaParameters nigaParameters, ref ErrorResponseModel errorResponseModel, int? ownerDoctorId = null);
 
     }
 }
