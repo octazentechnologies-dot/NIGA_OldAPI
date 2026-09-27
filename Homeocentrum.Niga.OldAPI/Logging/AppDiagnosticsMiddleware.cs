@@ -35,7 +35,8 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                     AppFileLog.Write(kind, level, "Http",
                         status + " " + context.Request.Method + " " + path + context.Request.QueryString + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
                         null,
-                        RequestDetails(context, status, sw.ElapsedMilliseconds));
+                        RequestDetails(context, status, sw.ElapsedMilliseconds),
+                        level == "ERROR");
                 }
                 else if (path.StartsWith("/api", StringComparison.OrdinalIgnoreCase))
                 {

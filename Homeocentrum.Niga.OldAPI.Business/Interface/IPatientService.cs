@@ -44,6 +44,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Interface
         /// <returns></returns>
         GetPatientDetailsById GetPatientDetailsById(long patientId, ref ErrorResponseModel errorResponseModel);
 
+        bool DoctorTreatsPatient(int doctorId, long patientId);
+
         /// <summary>
         /// Method declarations for Saving new Complaints.
         /// </summary>
