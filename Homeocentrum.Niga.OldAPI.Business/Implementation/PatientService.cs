@@ -194,6 +194,16 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
              
         }
 
+        public bool DoctorTreatsPatient(int doctorId, long patientId)
+        {
+            if (doctorId <= 0 || patientId <= 0)
+                return false;
+            return context.PatientAppointment.Any(a =>
+                a.PatientId == patientId
+                && a.DoctorId == doctorId
+                && a.DeleteStatus != true);
+        }
+
         /// <summary>
         /// Method implementation for Saving new Complaints.
         /// </summary>

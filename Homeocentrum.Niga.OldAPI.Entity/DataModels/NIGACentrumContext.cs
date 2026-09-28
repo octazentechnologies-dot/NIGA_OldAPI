@@ -205,11 +205,11 @@ namespace Homeocentrum.Niga.OldAPI.Entity.DataModels
             {
                 entity.HasKey(e => e.HistoryId);
 
-                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            entity.Property(e => e.ModifyDate).HasColumnType("datetime");
+            entity.Property(e => e.NoteType).HasMaxLength(40);
 
-                entity.Property(e => e.ModifyDate).HasColumnType("datetime");
-
-                entity.HasOne(d => d.Appointment)
+            entity.HasOne(d => d.Appointment)
                     .WithMany(p => p.AppointmentHistoryNote)
                     .HasForeignKey(d => d.AppointmentId)
                     .HasConstraintName("FK_AppointmentHistoryNote_PatientAppointment");
@@ -1534,9 +1534,12 @@ namespace Homeocentrum.Niga.OldAPI.Entity.DataModels
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Dose).HasMaxLength(250);
+            entity.Property(e => e.Dose).HasMaxLength(250);
+            entity.Property(e => e.Frequency).HasMaxLength(80);
+            entity.Property(e => e.Duration).HasMaxLength(80);
+            entity.Property(e => e.Instructions).HasMaxLength(500);
 
-                entity.HasOne(d => d.Appointment)
+            entity.HasOne(d => d.Appointment)
                     .WithMany(p => p.PrescriptionRemedyDetail)
                     .HasForeignKey(d => d.AppointmentId)
                     .OnDelete(DeleteBehavior.ClientSetNull)

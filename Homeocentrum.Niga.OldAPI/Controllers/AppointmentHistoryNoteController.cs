@@ -180,6 +180,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                int? ownerDoctorId = null;
                 if (appointmentId.HasValue && appointmentId.Value > 0)
                 {
                     var deny = ForbidAppointmentIfNotOwner(appointmentId);
@@ -188,11 +189,15 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                 }
                 else if (!DoctorOwnership.IsAdminPortalUser(User))
                 {
-                    return StatusCode(StatusCodes.Status403Forbidden,
-                        new { success = false, message = "Access denied for this doctor resource." });
+                    ownerDoctorId = DoctorOwnership.GetDoctorId(User);
+                    if (!ownerDoctorId.HasValue)
+                    {
+                        return StatusCode(StatusCodes.Status403Forbidden,
+                            new { success = false, message = "Access denied for this doctor resource." });
+                    }
                 }
 
-                var appointmentHistoryNoteResult = _appointmentHistoryNote.GetAllAppointmentHistoryNotes(appointmentId, nigaParameters, ref errorResponseModel);
+                var appointmentHistoryNoteResult = _appointmentHistoryNote.GetAllAppointmentHistoryNotes(appointmentId, nigaParameters, ref errorResponseModel, ownerDoctorId);
 
                 if (appointmentHistoryNoteResult != null)
                 {

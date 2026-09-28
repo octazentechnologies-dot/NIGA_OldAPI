@@ -176,7 +176,12 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                 {
                     var deny = DoctorOwnership.ForbidIfNotOwner(User, patientModelList.DoctorID);
                     if (deny != null)
+                    {
+                        var jwtDoctorId = DoctorOwnership.GetDoctorId(User);
+                        if (jwtDoctorId.HasValue && _patientService.DoctorTreatsPatient(jwtDoctorId.Value, PatientID))
+                            return Ok(patientModelList);
                         return deny;
+                    }
                     return Ok(patientModelList);
                 }
                 return ReturnErrorResponse(errorResponseModel);
