@@ -51,11 +51,7 @@ namespace Homeocentrum.Niga.OldAPI
                             .AllowAnyHeader();
                     });
             });
-            var sqlOnly = new ConfigurationBuilder()
-                .SetBasePath(ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-                .Build();
-            var defaultConnection = sqlOnly.GetConnectionString("DefaultConnection");
+            var defaultConnection = Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrWhiteSpace(defaultConnection))
             {
                 throw new InvalidOperationException(
