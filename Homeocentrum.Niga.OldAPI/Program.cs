@@ -19,6 +19,13 @@ namespace Homeocentrum.Niga.OldAPI
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    // This API has one appsettings.json. Do not load appsettings.Development.json or any other environment file.
+                    config.Sources.Clear();
+                    config.SetBasePath(context.HostingEnvironment.ContentRootPath);
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+                })
                 .UseStartup<Startup>();
     }
 }

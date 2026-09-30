@@ -135,10 +135,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     //Send encrypted user id to mail//
                     StringBuilder strBody = new StringBuilder();
                     strBody.Append("<body>");
-                    strBody.Append("<P>EnquiryName" + ":"+ model.EnquiryName);
-                    strBody.Append("<P>EnquiryDate" + ":" + (model.EnquiryDate).ToString());
-                    strBody.Append("<P>MobileNo" + ":" + model.MobileNo);
-                    strBody.Append("<P>EnquiryDetails1" + ":" + model.EnquiryDetails1);
+                    strBody.Append("<P>Enquiry Name" + ": " + model.EnquiryName);
+                    strBody.Append("<P>Enquiry Date" + ": " + (model.EnquiryDate).ToString());
+                    strBody.Append("<P>Mobile No" + ": " + model.MobileNo);
+                    strBody.Append("<P>Enquiry Details" + ": " + model.EnquiryDetails1);
                     strBody.Append("</body>");
                     var emailSenderModel = new EmailSenderModel();
                     emailSenderModel.ToAddress = smtpSettingsModel.from;
