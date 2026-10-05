@@ -30,6 +30,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         private static int _slowRequestMs = 3000;
         private static string[] _recipients = Array.Empty<string>();
         private static SmtpSettingsModel _smtp;
+        private static bool _deployNoticeEnabled = true;
 
         public static string LogsDirectory { get { return _root; } }
 
@@ -84,6 +85,9 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                     .ToArray();
                 _smtp = new SmtpSettingsModel();
                 config.GetSection("smtp").Bind(_smtp);
+                var deploy = config["DeployNotice:Enabled"];
+                if (!string.IsNullOrEmpty(deploy))
+                    bool.TryParse(deploy, out _deployNoticeEnabled);
             }
             if (_fileEnabled)
             {
@@ -317,6 +321,36 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         /// Midnight matrix. Subject stays "Homeocentrum Runtime ERROR - Old API - {local time}".
         /// Counts and root causes are in the body.
         /// </summary>
+        /// <summary>IIS only. phase started when the process loads, ready when the host is listening.</summary>
+        public static void SendDeployNotice(string phase)
+        {
+            if (!_deployNoticeEnabled || _recipients == null || _recipients.Length == 0 || _smtp == null)
+                return;
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("APP_POOL_ID")))
+                return;
+            var ready = string.Equals(phase, "ready", StringComparison.OrdinalIgnoreCase);
+            var subject = ready
+                ? "Homeocentrum IIS API deployment done - Old API"
+                : "Homeocentrum IIS API deployment started - Old API";
+            var body = "<p>" + WebUtility.HtmlEncode(subject) + "</p><p>Machine " + WebUtility.HtmlEncode(Environment.MachineName)
+                + " pool " + WebUtility.HtmlEncode(Environment.GetEnvironmentVariable("APP_POOL_ID"))
+                + " at " + DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss") + ".</p>";
+            var sender = new EmailSenderService();
+            foreach (var to in _recipients)
+            {
+                if (string.IsNullOrWhiteSpace(to)) continue;
+                var ok = sender.SendMail(new EmailSenderModel
+                {
+                    ToAddress = to.Trim(),
+                    Subject = Truncate(subject, 180),
+                    Body = body,
+                    isHtml = true
+                }, _smtp);
+                if (!ok)
+                    Write("errors", "WARN", "DeployNotice", "Deploy email failed to " + to, null, null, false);
+            }
+        }
+
         public static void SendDailyMatrix(DateTime day)
         {
             if (!_dailyMatrixEnabled || _recipients == null || _recipients.Length == 0 || _smtp == null)

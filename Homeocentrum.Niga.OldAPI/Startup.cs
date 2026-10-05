@@ -211,6 +211,10 @@ namespace Homeocentrum.Niga.OldAPI
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             AppFileLog.Initialize(env.ContentRootPath, Configuration);
+            AppFileLog.SendDeployNotice("started");
+            var lifetime = app.ApplicationServices.GetService<Microsoft.AspNetCore.Hosting.IApplicationLifetime>();
+            if (lifetime != null)
+                lifetime.ApplicationStarted.Register(() => AppFileLog.SendDeployNotice("ready"));
 
             if (env.IsDevelopment())
             {
@@ -229,6 +233,7 @@ namespace Homeocentrum.Niga.OldAPI
             });
 
             app.UseAuthentication();
+            app.UseMiddleware<HostSecurityMiddleware>();
             app.UseMiddleware<AppDiagnosticsMiddleware>();
             app.UseMiddleware<SimpleRateLimitMiddleware>();
             app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
