@@ -1326,8 +1326,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                                   {
                                       UserId = user.UserId,
                                       UserName = user.UserName,
-                                      UserStatus = user.UserStatus==false?"Active":"InActive",
+                                      UserStatus = user.UserStatus == true ? "Active" : "InActive",
                                       EmailId = user.EmailId,
+                                      MobileNo = user.MobileNo,
+                                      CreatedDate = user.EnteredDate,
                                       FirstName = user.FirstName,
                                       LastName = user.LastName,
                                       RoleId = user.RoleId,
