@@ -37,6 +37,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Author not found";
+                return null;
             }
             return new AuthorMasterModel
             {
@@ -163,6 +164,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     AuthorName = $"{item.AuthorAlias} {item.AuthorName} [{item.Description}]",
                     AuthorAlias = item.AuthorAlias,
                     Description=item.Description,
+                    IsDeleted = item.IsDeleted,
+                    IsForRepertory = item.IsForRepertory,
                    // AuthorNameAliasDescription = $"{item.AuthorAlias} {item.AuthorName} [{item.Description}]"
 
                 });

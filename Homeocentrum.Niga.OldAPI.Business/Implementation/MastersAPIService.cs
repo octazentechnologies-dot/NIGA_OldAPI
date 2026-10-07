@@ -319,13 +319,19 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
+                    MainParentSubsection = item.MainParentSubsection,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     Description = item.Description,
@@ -354,13 +360,19 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
+                    MainParentSubsection = item.MainParentSubsection,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     Description = item.Description,

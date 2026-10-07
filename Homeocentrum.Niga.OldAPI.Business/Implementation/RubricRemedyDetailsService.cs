@@ -267,6 +267,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             }
             remedyCountModel.SubSectionId = subSectionId;
             remedyCountModel.RemedyCount = remedyCount;
+            remedyCountModel.SubSectionName = context.SubSectionMaster
+                .Where(x => x.SubSectionId == subSectionId)
+                .Select(x => x.SubSectionName)
+                .FirstOrDefault();
             return remedyCountModel;
         }
 
@@ -587,6 +591,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Remedy not found";
+                return null;
             }
 
             RubricRemedyDetailModel rubricRemedyDetailModel = new RubricRemedyDetailModel();
@@ -848,7 +853,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
         {
             errorResponseModel = new ErrorResponseModel();
 
-            var cacheKey = $"RubricDetails:v9:{subSectionId}:a{(includeAuthors ? 1 : 0)}";
+            var cacheKey = $"RubricDetails:v10:{subSectionId}:a{(includeAuthors ? 1 : 0)}";
             if (_cache.TryGetValue(cacheKey, out RubricDetailModel cached))
             {
                 return cached;
@@ -864,6 +869,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     SubSectionNameAlias = subSection.SubSectionNameAlias,
                     SubSectionName = subSection.SubSectionName,
                     SectionId = subSection.SectionId,
+                    SectionName = subSection.Section.SectionName,
                     ParentSubSectionId = subSection.ParentSubSectionId,
                 })
                 .FirstOrDefault();

@@ -38,6 +38,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Intensity not found";
+                return null;
             }
             return new IntensityModel
             {

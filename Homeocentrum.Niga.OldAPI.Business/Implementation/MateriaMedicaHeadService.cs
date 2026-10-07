@@ -40,6 +40,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "MateriaMedicaHead not found";
+                return null;
             }
             return new MateriaMedicaHeadMasterModel
             {
@@ -75,7 +76,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                                                    IsSection = materiaMedicaHead.IsSection,
                                                    SeqNo = materiaMedicaHead.SeqNo,
                                                    AuthorName = auth.AuthorName,
-                                                   DifferentialMM= materiaMedicaHead.DifferentialMm
+                                                   DifferentialMM= materiaMedicaHead.DifferentialMm,
+                                                   IsDeleted = materiaMedicaHead.IsDeleted
                                                }).ToList();
             if (materiaMedicaheadEntityList.Count == 0)
             {
@@ -187,8 +189,9 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                                       materiamedicahead.Description,
                                       materiamedicahead.IsSection,
                                       materiamedicahead.SeqNo,
-                                      
-
+                                      materiamedicahead.AuthorId,
+                                      materiamedicahead.IsDeleted,
+                                      materiamedicahead.DifferentialMm,
                                      }).ToList();
             if (materiamedicaheadEntity.Count == 0)
             {
@@ -206,7 +209,9 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     Description = item.Description,
                     IsSection =item.IsSection,
                     SeqNo =item.SeqNo,
-                   
+                    AuthorId = item.AuthorId,
+                    IsDeleted = item.IsDeleted,
+                    DifferentialMM = item.DifferentialMm,
                 });
 
             });

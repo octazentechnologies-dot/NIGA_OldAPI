@@ -37,6 +37,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "DrugSystem not found";
+                return null;
             }
             return new DrugSystemModel
             {

@@ -18,6 +18,36 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         public string Message { get; set; } = SafeError.GenericMessage;
         public string ErrorId { get; set; } = "";
         public string TraceId { get; set; }
+
+        /// <summary>Only set when FeatureFlags:ExposeExceptionDetails is true; otherwise the property is left out of the JSON.</summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public SafeErrorException Exception { get; set; }
+    }
+
+    public sealed class SafeErrorException
+    {
+        public const int MaxDepth = 5;
+
+        public string Type { get; set; }
+        public string Message { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string StackTrace { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public SafeErrorException InnerException { get; set; }
+
+        public static SafeErrorException From(Exception ex, int depth = 1)
+        {
+            if (ex == null || depth > MaxDepth) return null;
+            return new SafeErrorException
+            {
+                Type = ex.GetType().FullName,
+                Message = ex.Message,
+                StackTrace = ex.StackTrace,
+                InnerException = From(ex.InnerException, depth + 1)
+            };
+        }
     }
 
     public static class SafeError
@@ -36,26 +66,54 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         {
             var errorId = NewErrorId();
             Log(errorId, ex == null ? "" : ex.GetType().Name, ex, context, where);
-            return new SafeErrorBody { Status = status, ErrorId = errorId, TraceId = context == null ? null : context.TraceIdentifier };
+            return new SafeErrorBody
+            {
+                Status = status,
+                ErrorId = errorId,
+                TraceId = context == null ? null : context.TraceIdentifier,
+                Exception = Details(ex)
+            };
         }
 
         public static SafeErrorBody CaptureText(string text, HttpContext context, int status, string where)
         {
             var errorId = NewErrorId();
             Log(errorId, text, null, context, where);
-            return new SafeErrorBody { Status = status, ErrorId = errorId, TraceId = context == null ? null : context.TraceIdentifier };
+            return new SafeErrorBody
+            {
+                Status = status,
+                ErrorId = errorId,
+                TraceId = context == null ? null : context.TraceIdentifier,
+                Exception = FeatureFlags.Current.ExposeExceptionDetails
+                    ? new SafeErrorException { Type = "ServerErrorText", Message = text }
+                    : null
+            };
         }
+
+        /// <summary>Exception details for the client body, or null unless FeatureFlags:ExposeExceptionDetails is on.</summary>
+        public static SafeErrorException Details(Exception ex)
+        {
+            return FeatureFlags.Current.ExposeExceptionDetails ? SafeErrorException.From(ex) : null;
+        }
+
+        private static readonly JsonSerializerSettings ExceptionJson = new JsonSerializerSettings
+        {
+            ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver()
+        };
 
         public static string ToJson(SafeErrorBody body)
         {
-            return JsonConvert.SerializeObject(new
+            var payload = new Dictionary<string, object>
             {
-                success = body.Success,
-                status = body.Status,
-                message = body.Message,
-                errorId = body.ErrorId,
-                traceId = body.TraceId
-            });
+                ["success"] = body.Success,
+                ["status"] = body.Status,
+                ["message"] = body.Message,
+                ["errorId"] = body.ErrorId,
+                ["traceId"] = body.TraceId
+            };
+            if (body.Exception != null)
+                payload["exception"] = body.Exception;
+            return JsonConvert.SerializeObject(payload, ExceptionJson);
         }
 
         private static void Log(string errorId, string summary, Exception ex, HttpContext context, string where)

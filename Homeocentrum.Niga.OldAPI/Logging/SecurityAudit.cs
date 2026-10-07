@@ -52,7 +52,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         public static async Task WriteAsync(string eventType, HttpContext context, string outcome = "SUCCESS",
             long? actorUserId = null, string actorRole = null, string subject = null, string detail = null)
         {
-            if (_key == null || string.IsNullOrEmpty(_connectionString))
+            if (!FeatureFlags.Current.EnableAuditLogging || _key == null || string.IsNullOrEmpty(_connectionString))
                 return;
             try
             {

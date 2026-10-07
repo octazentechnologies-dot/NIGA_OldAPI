@@ -42,6 +42,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "MateriaMedica Not Found";
+                return null;
             }
             MateriaMedicaDetailsModel matDetails = new MateriaMedicaDetailsModel();
             List<MateriaMedicaDetailsModel> lstmatDetails = new List<MateriaMedicaDetailsModel>();

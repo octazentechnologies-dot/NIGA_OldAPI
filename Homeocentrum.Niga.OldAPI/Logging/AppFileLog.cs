@@ -164,6 +164,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
 
         public static void Audit(string action, string entity, long? userId, string role)
         {
+            if (!FeatureFlags.Current.EnableAuditLogging) return;
             Write("audit", "INFO", entity, "user=" + userId + " role=" + role + " action=" + action, null, null, false);
         }
 
@@ -801,7 +802,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
             if (logLevel == LogLevel.None) return false;
             var microsoft = _category != null && (_category.StartsWith("Microsoft.", StringComparison.Ordinal)
                 || _category.StartsWith("System.", StringComparison.Ordinal));
-            if (microsoft && logLevel < LogLevel.Warning) return false;
+            if (microsoft && logLevel < (FeatureFlags.Current.EnableDetailedLogging ? LogLevel.Information : LogLevel.Warning)) return false;
             if (AppFileLog.IsFileEnabled && logLevel >= LogLevel.Debug) return true;
             if (AppFileLog.IsAlertEnabled && logLevel >= LogLevel.Error) return true;
             return false;
