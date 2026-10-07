@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Homeocentrum.Niga.OldAPI.Business.Interface;
 using Homeocentrum.Niga.OldAPI.Common;
 using Homeocentrum.Niga.OldAPI.Model;
+using Homeocentrum.Niga.OldAPI.Security;
 
 namespace Homeocentrum.Niga.OldAPI.Controllers
 {
@@ -61,7 +62,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -95,7 +96,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -116,6 +117,10 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = PatientAccess.ForbidIfNoAccess(User, patientId);
+                if (deny != null)
+                    return deny;
+
                 var patientLabOrderModel = _patientLabOrderServices.GetPatinetLabOrder(patientId, ref errorResponseModel);
 
                 if (patientLabOrderModel != null)
@@ -126,7 +131,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -159,7 +164,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -178,6 +183,10 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = PatientAccess.ForbidIfNoAccess(User, patientId);
+                if (deny != null)
+                    return deny;
+
                 var patientLabEntryModel = _patientLabEntryServices.GetPatientLabEntry(patientId,ref errorResponseModel);
 
                 if (patientLabEntryModel != null)
@@ -188,7 +197,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -207,6 +216,12 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (patientLabOrderModel == null || !PatientAccess.CanAccess(User, patientLabOrderModel.PatientId))
+                    return PatientAccess.Forbidden();
+                var existingPatientId = PatientAccess.LabRowPatientId("PatientLabOrder", patientLabOrderModel.PatientOrderedTestId);
+                if (existingPatientId.HasValue && !PatientAccess.CanAccess(User, existingPatientId.Value))
+                    return PatientAccess.Forbidden();
+
                 var jwtUserId = DoctorOwnership.GetUserId(User);
                 if (jwtUserId.HasValue)
                     patientLabOrderModel.UserId = jwtUserId.Value;
@@ -221,7 +236,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -240,6 +255,12 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                if (patientLabEntryModel == null || !PatientAccess.CanAccess(User, patientLabEntryModel.PatientId))
+                    return PatientAccess.Forbidden();
+                var existingPatientId = PatientAccess.LabRowPatientId("PatientLabEntry", patientLabEntryModel.PatientLabId);
+                if (existingPatientId.HasValue && !PatientAccess.CanAccess(User, existingPatientId.Value))
+                    return PatientAccess.Forbidden();
+
                 var jwtUserId = DoctorOwnership.GetUserId(User);
                 if (jwtUserId.HasValue)
                     patientLabEntryModel.EnteredBy = jwtUserId.Value;
@@ -254,7 +275,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
     }

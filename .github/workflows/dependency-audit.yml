@@ -1,0 +1,28 @@
+name: Dependency audit
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  nuget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Restore
+        run: dotnet restore Homeocentrum.Niga.OldAPI.sln
+      # Report only: every High/Critical finding here comes from the end-of-life ASP.NET Core 2.2 runtime and is
+      # fixed only by migrating to .NET 8. Turn this into a failing gate after that migration.
+      - name: Vulnerable packages
+        continue-on-error: true
+        run: dotnet list Homeocentrum.Niga.OldAPI.sln package --vulnerable --include-transitive

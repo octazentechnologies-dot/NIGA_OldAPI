@@ -31,6 +31,13 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         private static string[] _recipients = Array.Empty<string>();
         private static SmtpSettingsModel _smtp;
         private static bool _deployNoticeEnabled = true;
+        private static bool? _opsAlertSetting;
+
+        /// <summary>APP_POOL_ID is set only when IIS (ANCM) starts the process.</summary>
+        public static bool IsIisHosted { get { return !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("APP_POOL_ID")); } }
+
+        /// <summary>OpsAlert:Enabled. When not set, ops alerts are on under IIS and off for local runs and tests.</summary>
+        public static bool IsOpsAlertEnabled { get { return _opsAlertSetting ?? IsIisHosted; } }
 
         public static string LogsDirectory { get { return _root; } }
 
@@ -88,6 +95,8 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                 var deploy = config["DeployNotice:Enabled"];
                 if (!string.IsNullOrEmpty(deploy))
                     bool.TryParse(deploy, out _deployNoticeEnabled);
+                bool ops;
+                _opsAlertSetting = bool.TryParse(config["OpsAlert:Enabled"], out ops) ? ops : (bool?)null;
             }
             if (_fileEnabled)
             {
@@ -118,7 +127,8 @@ namespace Homeocentrum.Niga.OldAPI.Logging
         {
             try
             {
-                details = MergeSnapshot(details);
+                details = LogRedactor.RedactDetails(MergeSnapshot(details));
+                message = LogRedactor.Redact(message);
                 if (_fileEnabled)
                 {
                     var now = DateTime.Now;
@@ -136,7 +146,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                         }
                     }
                     if (ex != null)
-                        line += Environment.NewLine + ex;
+                        line += Environment.NewLine + LogRedactor.Redact(ex.ToString());
                     var type = LogFileType(kind, category);
                     lock (Gate)
                     {
@@ -351,6 +361,95 @@ namespace Homeocentrum.Niga.OldAPI.Logging
             }
         }
 
+        /// <summary>
+        /// IIS app-pool stop / recycle mail, sent from ApplicationStopping. Waits a few seconds at most because
+        /// ANCM gives an out-of-process app about 10 seconds to exit.
+        /// </summary>
+        public static void SendStopNotice()
+        {
+            if (!_deployNoticeEnabled || !IsIisHosted)
+                return;
+            var uptime = DateTime.Now - Process.GetCurrentProcess().StartTime;
+            var subject = "Homeocentrum IIS API stopping - Old API";
+            SendToRecipients(subject, OpsHtml(subject, new Dictionary<string, string>
+            {
+                { "What", "The API process is shutting down (app pool stop, recycle, IIS stop, deploy, or server restart)." },
+                { "Uptime", (int)uptime.TotalHours + "h " + uptime.Minutes + "m" },
+                { "Pool", Environment.GetEnvironmentVariable("APP_POOL_ID") ?? "" },
+            }), "DeployNotice", TimeSpan.FromSeconds(7));
+        }
+
+        /// <summary>
+        /// Operational / security alert (crash, brute force). One mail per key per cooldown. Values are redacted.
+        /// wait=true blocks up to 7 seconds (crash and shutdown paths).
+        /// </summary>
+        public static void SendOpsAlert(string key, string title, IDictionary<string, string> facts, int cooldownMinutes = 30, bool wait = false)
+        {
+            try
+            {
+                var safeFacts = new Dictionary<string, string>();
+                foreach (var kv in facts)
+                    safeFacts[kv.Key] = LogRedactor.Redact(kv.Value ?? "");
+                Write("app", "WARN", "OpsAlert", title + " " + string.Join(" ", safeFacts.Select(kv => kv.Key + "=" + kv.Value)), null, null, false);
+                if (!IsOpsAlertEnabled)
+                    return;
+                var now = DateTime.UtcNow;
+                DateTime prev;
+                if (cooldownMinutes > 0 && LastAlert.TryGetValue("ops|" + key, out prev) && now - prev < TimeSpan.FromMinutes(cooldownMinutes))
+                    return;
+                LastAlert["ops|" + key] = now;
+                var subject = "Homeocentrum ALERT - " + title + " - Old API";
+                var body = OpsHtml(title, safeFacts);
+                if (wait)
+                    SendToRecipients(subject, body, "OpsAlert", TimeSpan.FromSeconds(7));
+                else
+                    Task.Run(() => SendToRecipients(subject, body, "OpsAlert", null));
+            }
+            catch
+            {
+                // Alerting must never break the request or the shutdown that raised it.
+            }
+        }
+
+        private static void SendToRecipients(string subject, string body, string category, TimeSpan? waitAtMost)
+        {
+            if (_recipients == null || _recipients.Length == 0 || _smtp == null)
+                return;
+            Action send = () =>
+            {
+                var sender = new EmailSenderService();
+                foreach (var to in _recipients)
+                {
+                    if (string.IsNullOrWhiteSpace(to)) continue;
+                    if (!sender.SendMail(new EmailSenderModel { ToAddress = to.Trim(), Subject = Truncate(subject, 180), Body = body, isHtml = true }, _smtp))
+                        Write("errors", "WARN", category, "Alert email failed to " + to, null, null, false);
+                }
+            };
+            if (waitAtMost == null)
+                send();
+            else
+                Task.Run(send).Wait(waitAtMost.Value);
+        }
+
+        private static string OpsHtml(string title, IDictionary<string, string> facts)
+        {
+            var sb = new StringBuilder();
+            sb.Append("<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:14px;\">");
+            sb.Append("<h2 style=\"color:#b91c1c;margin:0 0 12px;\">").Append(WebUtility.HtmlEncode(title)).Append("</h2>");
+            sb.Append("<table cellpadding=\"6\" cellspacing=\"0\" border=\"1\" style=\"border-collapse:collapse;border-color:#cbd5e1;\">");
+            var rows = new Dictionary<string, string>(facts);
+            rows["Application"] = _application;
+            rows["Machine"] = Environment.MachineName;
+            rows["When (local)"] = DateTime.Now.ToString("dd-MMM-yyyy HH:mm:ss");
+            foreach (var kv in rows)
+            {
+                sb.Append("<tr><td style=\"background:#f1f5f9;font-weight:600;\">").Append(WebUtility.HtmlEncode(kv.Key))
+                  .Append("</td><td>").Append(WebUtility.HtmlEncode(kv.Value ?? "")).Append("</td></tr>");
+            }
+            sb.Append("</table><p style=\"color:#475569;\">Details are in the API Logs folder on the server.</p></div>");
+            return sb.ToString();
+        }
+
         public static void SendDailyMatrix(DateTime day)
         {
             if (!_dailyMatrixEnabled || _recipients == null || _recipients.Length == 0 || _smtp == null)
@@ -455,7 +554,7 @@ namespace Homeocentrum.Niga.OldAPI.Logging
                     inner = inner.InnerException;
                     n++;
                 }
-                AppendPreBlock(sb, "Exception / stack", detail.ToString(), "#fff7ed", "#7c2d12");
+                AppendPreBlock(sb, "Exception / stack", LogRedactor.Redact(detail.ToString()), "#fff7ed", "#7c2d12");
             }
 
             string stack;

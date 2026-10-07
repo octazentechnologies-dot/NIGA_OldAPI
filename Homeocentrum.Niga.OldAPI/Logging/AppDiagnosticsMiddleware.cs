@@ -55,11 +55,20 @@ namespace Homeocentrum.Niga.OldAPI.Logging
             {
                 sw.Stop();
                 var path = context.Request.Path.Value ?? "";
+                var errorId = SafeError.NewErrorId();
+                var details = RequestDetails(context, 500, sw.ElapsedMilliseconds);
+                details["ErrorId"] = errorId;
                 AppFileLog.Write("errors", "ERROR", "Http",
-                    "UNHANDLED " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
+                    "UNHANDLED errorId=" + errorId + " " + context.Request.Method + " " + path + " " + sw.ElapsedMilliseconds + "ms trace=" + context.TraceIdentifier,
                     ex,
-                    RequestDetails(context, 500, sw.ElapsedMilliseconds));
-                await ApiProblem.WriteAsync(context, 500, "Something went wrong. Please try again.");
+                    details);
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.Clear();
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(SafeError.ToJson(new SafeErrorBody { ErrorId = errorId, TraceId = context.TraceIdentifier }));
+                }
             }
             finally
             {

@@ -50,6 +50,12 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                 {
                     return BadRequest("Invalid data");
                 }
+                long callerId;
+                var isSelf = long.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out callerId) && callerId == userId;
+                if (!isSelf && !Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.IsAdminPortalUser(User))
+                {
+                    return StatusCode(StatusCodes.Status403Forbidden, new { success = false, message = "Access denied for this user." });
+                }
                 var userModel = _userService.GetUserById(userId, ref errorResponseModel);
 
                 if(userModel != null)
@@ -61,7 +67,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -71,8 +77,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize]
-        [AllowAnonymous]
+        [Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         public IActionResult Post(UserModel model)
         {
             if (model == null || !ModelState.IsValid)
@@ -95,7 +100,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
 
         }
@@ -129,7 +134,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
 
         }
@@ -158,12 +163,13 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
       
-        [HttpGet] [Authorize]
+        [HttpGet]
+        [Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [ProducesResponseType(typeof(NewUserModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -181,12 +187,13 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex) 
             { 
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message); 
+                return ServerError(ex); 
             }
         }
 
         [HttpPost]
         [Route("DeleteUser")]
+        [Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [ProducesResponseType(typeof(UserModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -208,7 +215,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -240,7 +247,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
     }

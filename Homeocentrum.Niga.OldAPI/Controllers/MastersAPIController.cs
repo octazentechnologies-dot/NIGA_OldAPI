@@ -53,7 +53,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -114,7 +114,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -173,7 +173,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -202,7 +202,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -231,7 +231,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -260,7 +260,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -289,7 +289,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -321,7 +321,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -351,7 +351,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -380,7 +380,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -409,7 +409,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -437,7 +437,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -466,7 +466,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -494,7 +494,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -523,7 +523,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -552,7 +552,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -581,7 +581,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -611,7 +611,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -641,7 +641,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -670,7 +670,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -699,7 +699,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -728,7 +728,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -758,7 +758,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         //    }
         //    catch (Exception ex)
         //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+        //        return ServerError(ex);
         //    }
         //}
 
@@ -776,6 +776,10 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = Homeocentrum.Niga.OldAPI.Common.DoctorOwnership.ForbidIfNotCallerOrAdmin(User, userId);
+                if (deny != null)
+                    return deny;
+
                 var doctorModelList = _mastersAPIService.GetDoctorById(userId, ref errorResponseModel);
 
                 if (doctorModelList != null)
@@ -786,7 +790,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -817,7 +821,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -847,7 +851,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 

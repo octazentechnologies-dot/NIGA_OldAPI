@@ -63,7 +63,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
 
         }
@@ -127,7 +127,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -151,7 +151,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -188,7 +188,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -233,7 +233,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
 
         }
@@ -255,6 +255,10 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = Homeocentrum.Niga.OldAPI.Security.PatientAccess.ForbidIfNoAccess(User, patientId);
+                if (deny != null)
+                    return deny;
+
                 var patientModel = _patientService.GetPatientDetailsById(patientId, ref errorResponseModel);
 
                 if (patientModel != null)
@@ -265,7 +269,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -277,6 +281,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                 /// <returns></returns>
         [HttpPost]
         [Route("Deletepatient")]
+        [DoctorOnly]
         [ProducesResponseType(typeof(PatientModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -286,6 +291,10 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             ErrorResponseModel errorResponseModel = null;
             try
             {
+                var deny = Homeocentrum.Niga.OldAPI.Security.PatientAccess.ForbidIfNoAccess(User, patientId);
+                if (deny != null)
+                    return deny;
+
                 var newsModel = _patientService.Deletepatient(patientId, ref errorResponseModel);
 
 
@@ -298,7 +307,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
     }

@@ -48,7 +48,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -77,7 +77,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -87,6 +87,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name="patientLabOrderModel"></param>
         /// <returns></returns>
         [HttpPost("SaveUpdateSubscription")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [ProducesResponseType(typeof(PatientLabOrderModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -120,7 +121,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 

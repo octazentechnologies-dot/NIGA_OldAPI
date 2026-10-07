@@ -41,12 +41,15 @@ namespace Homeocentrum.Niga.OldAPI
         {
             //Unable resources sharing
             //services.AddCors();
+            // Any browser origin unless Cors:AllowedOrigins lists specific ones. Credentials are never allowed cross-origin.
+            var configuredOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new string[0];
+            var allowedOrigins = new HashSet<string>(configuredOrigins, StringComparer.OrdinalIgnoreCase);
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAllOrigins",
                     builder =>
                     {
-                        builder.AllowAnyOrigin()
+                        builder.SetIsOriginAllowed(origin => allowedOrigins.Count == 0 || allowedOrigins.Contains(origin.TrimEnd('/')))
                             .AllowAnyMethod()
                             .AllowAnyHeader();
                     });
@@ -60,7 +63,8 @@ namespace Homeocentrum.Niga.OldAPI
             services.AddDbContext<NIGACentrumContext>(options =>
                 options.UseSqlServer(defaultConnection, sql => sql.CommandTimeout(90)));
             services.AddMemoryCache();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(options => options.Filters.Add(new SafeServerErrorResultFilter()))
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = ApiProblem.Validation;
@@ -211,15 +215,50 @@ namespace Homeocentrum.Niga.OldAPI
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             AppFileLog.Initialize(env.ContentRootPath, Configuration);
+            SecurityAudit.Initialize(Configuration);
+            Homeocentrum.Niga.OldAPI.Security.PatientAccess.Initialize(Configuration);
             AppFileLog.SendDeployNotice("started");
             var lifetime = app.ApplicationServices.GetService<Microsoft.AspNetCore.Hosting.IApplicationLifetime>();
             if (lifetime != null)
-                lifetime.ApplicationStarted.Register(() => AppFileLog.SendDeployNotice("ready"));
-
-            if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                lifetime.ApplicationStarted.Register(() => AppFileLog.SendDeployNotice("ready"));
+                lifetime.ApplicationStopping.Register(AppFileLog.SendStopNotice);
             }
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var ex = e.ExceptionObject as Exception;
+                AppFileLog.Write("errors", "CRITICAL", "Process", "Unhandled exception; process terminating=" + e.IsTerminating, ex, null, false);
+                AppFileLog.SendOpsAlert("crash", "API crashed", new Dictionary<string, string>
+                {
+                    { "Exception", ex == null ? "unknown" : ex.GetType().FullName },
+                    { "Message", ex == null ? "" : ex.Message },
+                    { "Terminating", e.IsTerminating.ToString() },
+                }, 0, true);
+            };
+
+            // IIS reverse-proxies to Kestrel on this machine; X-Forwarded-For is trusted only from loopback proxies (the default).
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+            });
+
+            // The developer exception page shows stack traces and source. It only runs for a local developer:
+            // Development environment, not hosted by IIS, and only for loopback callers.
+            var underIis = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APP_POOL_ID"))
+                || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_IIS_PHYSICAL_PATH"));
+            if (env.IsDevelopment() && !underIis)
+            {
+                app.UseWhen(ctx => ctx.Connection.RemoteIpAddress != null && System.Net.IPAddress.IsLoopback(ctx.Connection.RemoteIpAddress),
+                    local => local.UseDeveloperExceptionPage());
+            }
+            app.UseExceptionHandler(errorApp => errorApp.Run(async ctx =>
+            {
+                var feature = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+                var body = SafeError.Capture(feature?.Error, ctx, "Unhandled");
+                ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync(SafeError.ToJson(body));
+            }));
 
             app.Use(async (context, next) =>
             {

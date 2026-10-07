@@ -150,6 +150,8 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         //}
 
         [HttpPost("Login")]
+        [Homeocentrum.Niga.OldAPI.Logging.LoginAudit]
+        [Homeocentrum.Niga.OldAPI.Security.LoginThrottle(Order = 10)]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             try
@@ -170,11 +172,9 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                     // Corrupt/truncated hash (often written when UserPassword was still NVARCHAR(50))
                     if (UserPasswordHasher.IsCorruptHash(userEntity.UserPassword))
                     {
-                        return Unauthorized(new
-                        {
-                            message = "Invalid username or password",
-                            detail = "Password hash in database is corrupted/truncated. Reset UserPassword to plaintext (known password) after ensuring column is NVARCHAR(500), then login again so the API can re-hash it. Do not paste manual encryption."
-                        });
+                        Homeocentrum.Niga.OldAPI.Logging.AppFileLog.Write("errors", "WARN", "Account.Login",
+                            "Stored password hash is corrupted or truncated for UserId " + userEntity.UserId + ". Reset it after the column is NVARCHAR(500).", null, null, sendAlert: false);
+                        return Unauthorized(new { message = "Invalid username or password" });
                     }
 
                     // M01 SEC-01.02 — verify PBKDF2 hash or legacy plaintext
@@ -192,7 +192,8 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                         catch (Exception hashEx)
                         {
                             // Never block login if hashing/persist fails — keep plaintext and continue
-                            passwordHashWarning = "Password hash not saved: " + hashEx.Message;
+                            var errorId = Homeocentrum.Niga.OldAPI.Logging.SafeError.Capture(hashEx, HttpContext, "Account.Login.HashPersist").ErrorId;
+                            passwordHashWarning = "Password upgrade was not saved. Error id: " + errorId;
                         }
                     }
 
@@ -286,6 +287,12 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                     || !ReceptionStaffPasswordHelper.VerifyPassword(model.Password, receptionStaff.Password))
                     return Unauthorized(new { message = "Invalid username or password" });
 
+                if (ReceptionStaffPasswordHelper.NeedsRehash(receptionStaff.Password))
+                {
+                    receptionStaff.Password = ReceptionStaffPasswordHelper.HashPassword(model.Password);
+                    await _context.SaveChangesAsync();
+                }
+
                 var receptionDoctor = await _context.Doctor
                     .FirstOrDefaultAsync(d =>
                         d.DoctorId == receptionStaff.DoctorId &&
@@ -367,13 +374,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
                         message = "Login timed out. Please try again."
                     });
                 }
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = "An error occurred during login. Please try again.",
-                    detail = ex.Message,
-                    exceptionType = ex.GetType().FullName
-                });
+                return StatusCode(500, Homeocentrum.Niga.OldAPI.Logging.SafeError.Capture(ex, HttpContext, "Account.Login"));
             }
         }
 
