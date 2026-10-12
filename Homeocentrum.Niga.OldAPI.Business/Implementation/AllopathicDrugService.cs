@@ -54,7 +54,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
 
             //else
             //{
-                var listSubsectionEntity = context.AllopathicDrugMaster.Include(x=>x.DrugGroup).Where(x => x.DeleteStatus == false).Where((x => x.AllopathicDrugId == allopathicDrugId)).FirstOrDefault();
+                var listSubsectionEntity = context.AllopathicDrugMaster.Include(x=>x.DrugGroup).ThenInclude(x => x.DrugSystem).Where(x => x.DeleteStatus == false).Where((x => x.AllopathicDrugId == allopathicDrugId)).FirstOrDefault();
 
                 //Get all recodrs from AdverseReactionMaster join with AllopathicDrugMaster on allopathicDrugId
                 var adverseReactionEntity = (from adverseReactionMaster in context.AdverseReactionMaster
@@ -110,6 +110,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     listAllopathicDrugModel.AllopathicDrugName = listSubsectionEntity.AllopathicDrugName;
                     listAllopathicDrugModel.DrugGroupId = listSubsectionEntity.DrugGroupId;
                     listAllopathicDrugModel.DrugGroupName = listSubsectionEntity.DrugGroup.DrugGroupName;
+                    listAllopathicDrugModel.DrugSystemId = listSubsectionEntity.DrugGroup.DrugSystemId;
+                    listAllopathicDrugModel.DrugSystemName = listSubsectionEntity.DrugGroup.DrugSystem?.DrugSystemName;
                     listAllopathicDrugModel.DeleteStatus = listSubsectionEntity.DeleteStatus;
                     listAllopathicDrugModel.AdverseReactionModelList = adverseReactionEntity;
                     listAllopathicDrugModel.OtherSideEffectModelList = otherSideEffectEntity;
@@ -131,21 +133,25 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
         {
             var allopathicDrugModelList = new List<AllopathicDrugModel>();
             errorResponseModel = new ErrorResponseModel();
-            var allopathicDrugEntity = context.AllopathicDrugMaster.Include(x => x.DrugGroup).Where(x => x.DeleteStatus == false).ToList();
+            var allopathicDrugEntity = context.AllopathicDrugMaster.Include(x => x.DrugGroup).ThenInclude(x => x.DrugSystem).Where(x => x.DeleteStatus == false).ToList();
             if (allopathicDrugEntity.Count == 0)
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "AllopathicDrug not found";
             }
 
+            var adverseReactionLookup = context.AdverseReactionMaster.Where(x => x.DeleteStatus == false).ToLookup(x => x.AllopathicDrugId);
+            var otherSideEffectLookup = context.OtherSideEffectMaster.Where(x => x.DeleteStatus == false).ToLookup(x => x.AllopathicDrugId);
+            var seriousSideEffectLookup = context.SeriousSideEffectMaster.Where(x => x.DeleteStatus == false).ToLookup(x => x.AllopathicDrugId);
+
             allopathicDrugEntity.ForEach(item =>
             {
                 List<AdverseReactionModel> adverseReactionModelList=new List<AdverseReactionModel>();
                 List<OtherSideEffectModel> otherSideEffectModelList=new List<OtherSideEffectModel>();
                 List<SeriousSideEffectModel> seriousSideEffectModelList=new List<SeriousSideEffectModel>();
-                var adverseReactionEntity = context.AdverseReactionMaster.Where(x => x.DeleteStatus == false && x.AllopathicDrugId==item.AllopathicDrugId).ToList();
-                var otherSideEffectEntity = context.OtherSideEffectMaster.Where(x => x.DeleteStatus == false && x.AllopathicDrugId==item.AllopathicDrugId).ToList();
-                var seriousSideEffectEntity = context.SeriousSideEffectMaster.Where(x => x.DeleteStatus == false && x.AllopathicDrugId==item.AllopathicDrugId).ToList();
+                var adverseReactionEntity = adverseReactionLookup[item.AllopathicDrugId].ToList();
+                var otherSideEffectEntity = otherSideEffectLookup[item.AllopathicDrugId].ToList();
+                var seriousSideEffectEntity = seriousSideEffectLookup[item.AllopathicDrugId].ToList();
 
                 adverseReactionEntity.ForEach(adverseReactionItem =>
                 {
@@ -187,6 +193,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 {
                     DrugGroupId = item.DrugGroupId,
                     DrugGroupName = item.DrugGroup.DrugGroupName,
+                    DrugSystemId = item.DrugGroup.DrugSystemId,
+                    DrugSystemName = item.DrugGroup.DrugSystem?.DrugSystemName,
                     AllopathicDrugId = item.AllopathicDrugId,
                     AllopathicDrugName = item.AllopathicDrugName,
                     DeleteStatus = item.DeleteStatus,

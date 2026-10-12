@@ -13,13 +13,24 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
 {
     public class OrderService : IOrderService
     {
+        private readonly string _keyId;
+        private readonly string _keySecret;
+
+        public OrderService(Microsoft.Extensions.Configuration.IConfiguration configuration)
+        {
+            _keyId = configuration["Razorpay:KeyId"] ?? "";
+            _keySecret = configuration["Razorpay:KeySecret"] ?? "";
+        }
+
         public async Task<string> GenerateOrderAsync(OrderModel orderModel)
         {
+            if (string.IsNullOrEmpty(_keyId) || string.IsNullOrEmpty(_keySecret))
+                throw new InvalidOperationException("Razorpay:KeyId and Razorpay:KeySecret are not configured.");
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes("rzp_live_WSDlLVrcCPFbEQ:Hxp0NS02jGsUt6cixbqoC6bB")));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_keyId + ":" + _keySecret)));
 
                     var content = new StringContent(JsonConvert.SerializeObject(new
                     {

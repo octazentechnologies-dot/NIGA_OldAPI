@@ -64,6 +64,9 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     AuthorId = item.AuthorId,
                     AuthorName = item.AuthorName,
                     AuthorAlias = item.AuthorAlias,
+                    Description = item.Description,
+                    IsDeleted = item.IsDeleted,
+                    IsForRepertory = item.IsForRepertory,
                 });
             });
             return authorModelList;
@@ -146,6 +149,19 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "QuestionSubGroup Not Found";
+            }
+            else
+            {
+                var sectionLinks = context.QuestionSubgroupSection
+                    .Where(x => !x.DeleteStatus)
+                    .Select(x => new { x.QuestionSubgroupId, x.SectionId })
+                    .ToList()
+                    .ToLookup(x => x.QuestionSubgroupId, x => x.SectionId);
+
+                foreach (var sg in questionSectionList)
+                {
+                    sg.SectionIds = sectionLinks[sg.QuestionSubgroupId].Distinct().ToList();
+                }
             }
 
             return questionSectionList;

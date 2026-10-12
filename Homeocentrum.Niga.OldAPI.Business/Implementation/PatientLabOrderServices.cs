@@ -85,14 +85,21 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "records not found";
             }
+            var labTestNames = context.PatientLabTestMaster
+                .Select(x => new { x.PatientLabTestId, x.LabTestName })
+                .ToDictionary(x => x.PatientLabTestId, x => x.LabTestName);
             patientLabOrderEntities.ForEach(item => {
+                string labTestName = null;
+                if (item.PatientLabTestId.HasValue)
+                    labTestNames.TryGetValue(item.PatientLabTestId.Value, out labTestName);
                 patientLabOrderModelList.Add(new PatientLabOrderModel
                 {
                     PatientOrderedTestId=item.PatientOrderedTestId,
                     LabName=item.LabName,
                     OrderDate=item.OrderDate,
                     PatientId=item.PatientId,
-                    PatientLabTestId =item.PatientLabTestId                   
+                    PatientLabTestId =item.PatientLabTestId,
+                    PatientLabTestName = labTestName
                 });
             });
             return patientLabOrderModelList.OrderByDescending(x=>x.PatientOrderedTestId).ToList();

@@ -26,6 +26,10 @@ namespace Homeocentrum.Niga.OldAPI
                     config.SetBasePath(context.HostingEnvironment.ContentRootPath);
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
                 })
+                // Nothing goes to the console. Logs are written by AppFileLoggerProvider (Startup) under Logs/.
+                .ConfigureLogging(logging => logging.ClearProviders())
+                .SuppressStatusMessages(true)
+                .ConfigureKestrel(options => options.AddServerHeader = false)
                 .UseStartup<Startup>();
     }
 }

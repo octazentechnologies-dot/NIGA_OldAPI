@@ -43,5 +43,15 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             
         }
+
+        /// <summary>Logs the exception under a new error id and returns a generic 500 body.</summary>
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [NonAction]
+        public IActionResult ServerError(System.Exception ex)
+        {
+            var where = ControllerContext?.ActionDescriptor?.DisplayName;
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                Homeocentrum.Niga.OldAPI.Logging.SafeError.Capture(ex, HttpContext, where));
+        }
     }
 }

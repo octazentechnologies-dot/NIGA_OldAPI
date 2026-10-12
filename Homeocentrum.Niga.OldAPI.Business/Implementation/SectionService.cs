@@ -124,6 +124,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     {
                         SectionId = item.SectionId,
                         SectionName = item.SectionName,
+                        SectionAlias = item.SectionAlias,
+                        Description = item.Description,
                         listSubSectionModel = new List<SubSectionModel>() // ensure initialized
                     };
 

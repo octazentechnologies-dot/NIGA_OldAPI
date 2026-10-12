@@ -64,7 +64,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -94,7 +94,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -104,6 +104,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name=""></param>
         /// <returns></returns>
         [HttpPost("SaveNewsDetails")]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [ProducesResponseType(typeof(NewDetailModel1), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -123,7 +124,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -134,6 +135,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name=""></param>
         /// <returns></returns>
         [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [Route("DeleteNewsDetails")]
         [ProducesResponseType(typeof(NewDetailModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
@@ -156,7 +158,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -187,7 +189,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 

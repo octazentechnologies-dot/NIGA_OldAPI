@@ -64,6 +64,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Lab test not found";
+                return null;
             }
             return new PatientLabTestModel
             {

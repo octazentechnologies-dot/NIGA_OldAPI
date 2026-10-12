@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,10 +18,12 @@ using Homeocentrum.Niga.OldAPI.Business.Services;
 using Homeocentrum.Niga.OldAPI.Common;
 using Homeocentrum.Niga.OldAPI.Entity.DataModels;
 using Homeocentrum.Niga.OldAPI.Model;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 namespace Homeocentrum.Niga.OldAPI
@@ -31,36 +34,60 @@ namespace Homeocentrum.Niga.OldAPI
         {
             Configuration = configuration;
             ContentRootPath = env.ContentRootPath;
+            Flags = FeatureFlags.Load(configuration);
         }
 
         public IConfiguration Configuration { get; }
         public string ContentRootPath { get; }
+        public FeatureFlags Flags { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             //Unable resources sharing
             //services.AddCors();
-            services.AddCors(options =>
+            // Any browser origin unless Cors:AllowedOrigins lists specific ones. Credentials are never allowed cross-origin.
+            if (Flags.EnableCors)
             {
-                options.AddPolicy("AllowAllOrigins",
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                    });
-            });
+                var configuredOrigins = Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new string[0];
+                var allowedOrigins = new HashSet<string>(configuredOrigins, StringComparer.OrdinalIgnoreCase);
+                services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowAllOrigins",
+                        builder =>
+                        {
+                            builder.SetIsOriginAllowed(origin => allowedOrigins.Count == 0 || allowedOrigins.Contains(origin.TrimEnd('/')))
+                                .AllowAnyMethod()
+                                .AllowAnyHeader()
+                                .WithExposedHeaders("X-Trace-Id");
+                        });
+                });
+            }
+            if (Flags.EnableResponseCompression)
+            {
+                services.AddResponseCompression(options =>
+                {
+                    options.EnableForHttps = true;
+                    options.Providers.Add<GzipCompressionProvider>();
+                });
+                services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+            }
             var defaultConnection = Configuration.GetConnectionString("DefaultConnection");
             if (string.IsNullOrWhiteSpace(defaultConnection))
             {
                 throw new InvalidOperationException(
                     "Connection string 'DefaultConnection' was not found in appsettings.json.");
             }
+            var sensitiveDataLogging = Flags.EnableSensitiveDataLogging;
             services.AddDbContext<NIGACentrumContext>(options =>
-                options.UseSqlServer(defaultConnection, sql => sql.CommandTimeout(90)));
+            {
+                options.UseSqlServer(defaultConnection, sql => sql.CommandTimeout(90));
+                if (sensitiveDataLogging)
+                    options.EnableSensitiveDataLogging();
+            });
             services.AddMemoryCache();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddMvc(options => options.Filters.Add(new SafeServerErrorResultFilter()))
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = ApiProblem.Validation;
@@ -73,7 +100,8 @@ namespace Homeocentrum.Niga.OldAPI
                 builder.AddFilter<AppFileLoggerProvider>(null, LogLevel.Debug);
                 builder.AddProvider(new AppFileLoggerProvider());
             });
-            services.AddHostedService<DailyIssueMatrixEmailService>();
+            if (Flags.EnableBackgroundJobs)
+                services.AddHostedService<DailyIssueMatrixEmailService>();
             services.Configure<ConfigurationModel>(option => Configuration.GetSection("ConfigurationModel").Bind(option));
 
             // configure jwt authentication
@@ -180,30 +208,33 @@ namespace Homeocentrum.Niga.OldAPI
             services.AddScoped<ITokenService, TokenService>();
             ////comment below part at the time host
             //// Register the Swagger generator, defining 1 or more Swagger documents
-            services.AddSwaggerGen(c =>
+            if (Flags.EnableSwagger)
             {
-                c.SwaggerDoc("v1", new Info { Title = "Homeocentrum Old API", Version = "v1" });
-
-                var security = new Dictionary<string, IEnumerable<string>>
+                services.AddSwaggerGen(c =>
                 {
-                    {"Bearer", new string[] { }},
-                };
+                    c.SwaggerDoc("v1", new Info { Title = "Homeocentrum Old API", Version = "v1" });
 
-                c.AddSecurityDefinition("Bearer", new ApiKeyScheme
-                {
-                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
-                    Name = "Authorization",
-                    In = "header",
-                    Type = "apiKey"
+                    var security = new Dictionary<string, IEnumerable<string>>
+                    {
+                        {"Bearer", new string[] { }},
+                    };
+
+                    c.AddSecurityDefinition("Bearer", new ApiKeyScheme
+                    {
+                        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                        Name = "Authorization",
+                        In = "header",
+                        Type = "apiKey"
+                    });
+                    c.AddSecurityRequirement(security);
+
+
+
+                    var filePath = Path.Combine(AppContext.BaseDirectory, "Homeocentrum.Niga.OldAPI.xml");
+                    c.IncludeXmlComments(filePath);
+
                 });
-                c.AddSecurityRequirement(security);
-
-
-
-                var filePath = Path.Combine(AppContext.BaseDirectory, "Homeocentrum.Niga.OldAPI.xml");
-                c.IncludeXmlComments(filePath);
-
-            });
+            }
             ////up to 
         }
 
@@ -211,31 +242,97 @@ namespace Homeocentrum.Niga.OldAPI
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             AppFileLog.Initialize(env.ContentRootPath, Configuration);
+            SecurityAudit.Initialize(Configuration);
+            Homeocentrum.Niga.OldAPI.Security.PatientAccess.Initialize(Configuration);
             AppFileLog.SendDeployNotice("started");
             var lifetime = app.ApplicationServices.GetService<Microsoft.AspNetCore.Hosting.IApplicationLifetime>();
             if (lifetime != null)
-                lifetime.ApplicationStarted.Register(() => AppFileLog.SendDeployNotice("ready"));
-
-            if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                lifetime.ApplicationStarted.Register(() => AppFileLog.SendDeployNotice("ready"));
+                lifetime.ApplicationStopping.Register(AppFileLog.SendStopNotice);
+            }
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                var ex = e.ExceptionObject as Exception;
+                AppFileLog.Write("errors", "CRITICAL", "Process", "Unhandled exception; process terminating=" + e.IsTerminating, ex, null, false);
+                AppFileLog.SendOpsAlert("crash", "API crashed", new Dictionary<string, string>
+                {
+                    { "Exception", ex == null ? "unknown" : ex.GetType().FullName },
+                    { "Message", ex == null ? "" : ex.Message },
+                    { "Terminating", e.IsTerminating.ToString() },
+                }, 0, true);
+            };
+
+            // IIS reverse-proxies to Kestrel on this machine; X-Forwarded-For is trusted only from loopback proxies (the default).
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+            });
+
+            if (Flags.EnableResponseCompression)
+                app.UseResponseCompression();
+
+            if (Flags.EnableMaintenanceMode)
+            {
+                // CORS runs first so a browser on another origin can read the 503 body.
+                if (Flags.EnableCors)
+                    app.UseCors("AllowAllOrigins");
+                var maintenanceJson = JsonConvert.SerializeObject(new { success = false, status = 503, message = Flags.MaintenanceMessage });
+                app.Use(async (context, next) =>
+                {
+                    if ((context.Request.Path.Value ?? "").StartsWith("/health", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await next();
+                        return;
+                    }
+                    context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                    context.Response.ContentType = "application/json";
+                    context.Response.Headers["Retry-After"] = "300";
+                    await context.Response.WriteAsync(maintenanceJson);
+                });
             }
 
-            app.Use(async (context, next) =>
+            // The developer exception page shows stack traces and source. It only runs for a local developer:
+            // Development environment, not hosted by IIS, and only for loopback callers.
+            var underIis = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APP_POOL_ID"))
+                || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_IIS_PHYSICAL_PATH"));
+            if (env.IsDevelopment() && !underIis)
             {
-                if (HttpMethods.IsGet(context.Request.Method)
-                    && (context.Request.Path.Value == "/" || string.IsNullOrEmpty(context.Request.Path.Value)))
+                app.UseWhen(ctx => ctx.Connection.RemoteIpAddress != null && System.Net.IPAddress.IsLoopback(ctx.Connection.RemoteIpAddress),
+                    local => local.UseDeveloperExceptionPage());
+            }
+            app.UseExceptionHandler(errorApp => errorApp.Run(async ctx =>
+            {
+                var feature = ctx.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+                var body = SafeError.Capture(feature?.Error, ctx, "Unhandled");
+                ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                ctx.Response.ContentType = "application/json";
+                await ctx.Response.WriteAsync(SafeError.ToJson(body));
+            }));
+
+            if (Flags.EnableSwagger)
+            {
+                app.Use(async (context, next) =>
                 {
-                    context.Response.Redirect("/swagger");
-                    return;
-                }
-                await next();
-            });
+                    if (HttpMethods.IsGet(context.Request.Method)
+                        && (context.Request.Path.Value == "/" || string.IsNullOrEmpty(context.Request.Path.Value)))
+                    {
+                        context.Response.Redirect("/swagger");
+                        return;
+                    }
+                    await next();
+                });
+            }
+
+            // Before security, rate-limit and health responses so browsers on any origin can read them (including 429).
+            if (Flags.EnableCors && !Flags.EnableMaintenanceMode)
+                app.UseCors("AllowAllOrigins");
 
             app.UseAuthentication();
             app.UseMiddleware<HostSecurityMiddleware>();
             app.UseMiddleware<AppDiagnosticsMiddleware>();
-            app.UseMiddleware<SimpleRateLimitMiddleware>();
+            if (Flags.EnableRateLimiting)
+                app.UseMiddleware<SimpleRateLimitMiddleware>();
             app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
             {
                 ResponseWriter = (context, report) =>
@@ -244,12 +341,6 @@ namespace Homeocentrum.Niga.OldAPI
                     return context.Response.WriteAsync("{\"success\":true,\"status\":\"" + report.Status + "\",\"api\":\"Old API\"}");
                 }
             });
-            //app.UseCors(builder => builder.AllowAnyOrigin()
-            //                    .AllowAnyMethod()
-            //                    .WithHeaders("authorization", "accept", "content-type", "origin"));
-
-            app.UseCors("AllowAllOrigins");
-
             app.UseHomeocentrumFavicon();
             app.UseStaticFiles();
             app.UseStaticFiles(new StaticFileOptions
@@ -262,23 +353,27 @@ namespace Homeocentrum.Niga.OldAPI
             });
 
 
-            app.UseMiddleware<SwaggerGateMiddleware>();
+            if (Flags.EnableSwagger)
+                app.UseMiddleware<SwaggerGateMiddleware>();
             app.UseMvc();
 
             ////comment below part at the time host
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            if (Flags.EnableSwagger)
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Homeocentrum Old API");
-                c.DocumentTitle = "Homeocentrum Old API";
-                c.HeadContent =
-                    "<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />" +
-                    "<link rel=\"shortcut icon\" href=\"/favicon.ico\" />" +
-                    "<script>document.addEventListener('DOMContentLoaded',function(){" +
-                    "document.querySelectorAll('link[rel*=\"icon\"]').forEach(function(el){el.parentNode.removeChild(el);});" +
-                    "var l=document.createElement('link');l.rel='icon';l.type='image/png';l.href='/favicon.png?v=hc';document.head.appendChild(l);" +
-                    "});</script>";
-            });
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Homeocentrum Old API");
+                    c.DocumentTitle = "Homeocentrum Old API";
+                    c.HeadContent =
+                        "<link rel=\"icon\" type=\"image/png\" href=\"/favicon.png\" />" +
+                        "<link rel=\"shortcut icon\" href=\"/favicon.ico\" />" +
+                        "<script>document.addEventListener('DOMContentLoaded',function(){" +
+                        "document.querySelectorAll('link[rel*=\"icon\"]').forEach(function(el){el.parentNode.removeChild(el);});" +
+                        "var l=document.createElement('link');l.rel='icon';l.type='image/png';l.href='/favicon.png?v=hc';document.head.appendChild(l);" +
+                        "});</script>";
+                });
+            }
             ////up to
         }
     }

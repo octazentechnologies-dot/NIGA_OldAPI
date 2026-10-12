@@ -38,6 +38,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             {
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "Remedy grade not found";
+                return null;
             }
             return new RemedyGradeModel
             {

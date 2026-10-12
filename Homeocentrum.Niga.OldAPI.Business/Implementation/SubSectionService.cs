@@ -196,6 +196,7 @@ SELECT CASE WHEN EXISTS (
                     listSubSectionModel.SubSectionNameAlias = listSubsectionEntity.SubSectionNameAlias;
                     listSubSectionModel.SubSectionName = listSubsectionEntity.SubSectionName;
                     listSubSectionModel.SectionId = listSubsectionEntity.SectionId;
+                    listSubSectionModel.SectionName = context.SectionMaster.Where(x => x.SectionId == listSubsectionEntity.SectionId).Select(x => x.SectionName).FirstOrDefault();
                     listSubSectionModel.ParentSubSectionId = listSubsectionEntity.ParentSubSectionId;
                     listSubSectionModel.ParentSubSectionName = context.SubSectionMaster.Where(x=>x.SubSectionId== listSubsectionEntity.ParentSubSectionId).Select(x=>x.SubSectionName).FirstOrDefault();
                     listSubSectionModel.Referencerubric = materiamedicaremediesEntity;
@@ -236,13 +237,18 @@ SELECT CASE WHEN EXISTS (
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     MainParentSubsection=item.MainParentSubsection,
@@ -524,13 +530,18 @@ SELECT CASE WHEN EXISTS (
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     MainParentSubsection = item.MainParentSubsection,

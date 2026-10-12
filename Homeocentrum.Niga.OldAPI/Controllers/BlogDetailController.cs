@@ -46,7 +46,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -84,6 +84,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name=""></param>
         /// <returns></returns>
         [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [ProducesResponseType(typeof(BlogDetailModel1), 200)]
         [ProducesResponseType(typeof(string), 404)]
         [ProducesResponseType(typeof(string), 400)]
@@ -103,7 +104,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 
@@ -113,6 +114,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
         /// <param name=""></param>
         /// <returns></returns>
         [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = Homeocentrum.Niga.OldAPI.Common.AdminAuthorizationPolicies.AdminPortal)]
         [Route("DeleteBlogDetail")]
         [ProducesResponseType(typeof(BlogDetailModel), 200)]
         [ProducesResponseType(typeof(string), 404)]
@@ -133,7 +135,7 @@ namespace Homeocentrum.Niga.OldAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return ServerError(ex);
             }
         }
 

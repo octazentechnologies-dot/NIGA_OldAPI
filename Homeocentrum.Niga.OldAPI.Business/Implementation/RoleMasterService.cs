@@ -45,6 +45,9 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 RoleId = roleMasterEntity.RoleId,
                 RoleName = roleMasterEntity.RoleName,
                 FirmIds = roleMasterEntity.FirmIds,
+                FirmName = ResolveFirmName(roleMasterEntity.FirmIds, context.FirmDetails
+                    .Select(x => new { x.FirmId, x.FirmName })
+                    .ToDictionary(x => x.FirmId, x => x.FirmName)),
                 EnteredDate = roleMasterEntity.EnteredDate,
                 EnteredBy = roleMasterEntity.EnteredBy,
                 ChangedBy = roleMasterEntity.ChangedBy,
@@ -69,6 +72,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "Role Master not found";
             }
 
+            var firmNames = context.FirmDetails
+                .Select(x => new { x.FirmId, x.FirmName })
+                .ToDictionary(x => x.FirmId, x => x.FirmName);
+
             roleMasterEntityList.ForEach(item =>
             {
                 roleMasterModelList.Add(new RoleMasterModel
@@ -76,6 +83,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     RoleId = item.RoleId,
                     RoleName = item.RoleName,
                     FirmIds = item.FirmIds,
+                    FirmName = ResolveFirmName(item.FirmIds, firmNames),
                     EnteredDate = item.EnteredDate,
                     EnteredBy = item.EnteredBy,
                     ChangedBy = item.ChangedBy,
@@ -84,6 +92,24 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 });
             });
             return roleMasterModelList;
+        }
+
+        /// <summary>
+        /// FirmIds is a comma-separated list of FirmDetails ids; non-numeric or unknown entries are ignored.
+        /// </summary>
+        private static string ResolveFirmName(string firmIds, Dictionary<int, string> firmNames)
+        {
+            if (string.IsNullOrWhiteSpace(firmIds))
+                return null;
+
+            var names = firmIds
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => int.TryParse(x.Trim(), out var id) && firmNames.TryGetValue(id, out var name) ? name : null)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .ToList();
+
+            return names.Count == 0 ? null : string.Join(", ", names);
         }
 
         /// <summary>

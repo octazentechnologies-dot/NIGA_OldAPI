@@ -54,7 +54,7 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     NewsCategoryId = item.NewsCategoryId,
                     NewsCategory1=item.NewsCategory1,
                     SeqNo = item.SeqNo,
-                    
+                    IsActive = item.IsActive,
                 });
             });
             return newscategoryList;

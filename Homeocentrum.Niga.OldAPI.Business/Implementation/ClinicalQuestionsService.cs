@@ -521,6 +521,12 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
             var result = new ClinicalQuestionBodyViewModel();
 
             var clinicalQuestionBodyPart=context.ClinicalQuestions.FirstOrDefault(x=>x.QuestionsId == quetionId);
+            if (clinicalQuestionBodyPart == null)
+            {
+                errorResponseModel.StatusCode = HttpStatusCode.NotFound;
+                errorResponseModel.Message = "Clinical question not found";
+                return null;
+            }
 
             result.QuestionsId = clinicalQuestionBodyPart.QuestionsId; 
             result.QuestionGroupId = clinicalQuestionBodyPart.QuestionGroupId;

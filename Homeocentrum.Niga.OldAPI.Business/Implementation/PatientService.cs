@@ -160,7 +160,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                                      p.ChangedBy,
                                      p.ChangedDate,
                                      p.DeleteStatus,
-                                    
+                                     c.DateodFirstVisit,
+                                     c.RefBy,
                                  }
                                   ).FirstOrDefault();
                 //context.Patient.Where(x => x.PatientId == PatientID).FirstOrDefault();
@@ -170,6 +171,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "patient not found";
                 return null;
             }
+            var appointmentDates = context.PatientAppointment
+                .Where(a => a.PatientId == patientEntity.PatientId && a.DoctorId == patientEntity.DoctorId && a.DeleteStatus != true)
+                .Select(a => a.AppointmentDate)
+                .ToList();
             return new PatientModel
             {
                
@@ -189,7 +194,10 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 ChangedDate = patientEntity.ChangedDate,
                 DeleteStatus = patientEntity.DeleteStatus,
                 UserId = patientEntity.UserId,
-                CaseId = patientEntity.CaseId
+                CaseId = patientEntity.CaseId,
+                DateodFirstVisit = patientEntity.DateodFirstVisit,
+                RefBy = patientEntity.RefBy,
+                LastVisitAt = LastVisitHelper.MaxParsedDate(appointmentDates)
             };
              
         }

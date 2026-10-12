@@ -7,21 +7,17 @@ using Microsoft.Extensions.Configuration;
 namespace Homeocentrum.Niga.OldAPI.Logging
 {
     /// <summary>Fixed window per IP. Health and the Swagger sign-in page are not counted.
-    /// Set RateLimit:Enabled=false to skip limiting entirely.</summary>
+    /// Registered only when FeatureFlags:EnableRateLimiting is true.</summary>
     public sealed class SimpleRateLimitMiddleware
     {
         private static readonly ConcurrentDictionary<string, Window> Windows = new ConcurrentDictionary<string, Window>();
         private readonly RequestDelegate _next;
-        private readonly bool _enabled;
         private readonly int _limit;
         private readonly int _windowSeconds;
 
         public SimpleRateLimitMiddleware(RequestDelegate next, IConfiguration configuration)
         {
             _next = next;
-            _enabled = true;
-            if (bool.TryParse(configuration["RateLimit:Enabled"], out var enabledFlag))
-                _enabled = enabledFlag;
             _limit = 300;
             _windowSeconds = 60;
             int parsed;
@@ -33,12 +29,6 @@ namespace Homeocentrum.Niga.OldAPI.Logging
 
         public async Task Invoke(HttpContext context)
         {
-            if (!_enabled)
-            {
-                await _next(context);
-                return;
-            }
-
             var path = context.Request.Path.Value ?? "";
             if (path.StartsWith("/health", StringComparison.OrdinalIgnoreCase)
                 || path.StartsWith("/swagger", StringComparison.OrdinalIgnoreCase))

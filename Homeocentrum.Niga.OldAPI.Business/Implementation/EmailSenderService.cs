@@ -83,7 +83,6 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 LastError = ex.GetBaseException().Message;
                 emailSenderModel.sentStatus = false;
                 emailSenderModel.LastError = LastError;
-                Console.Error.WriteLine("SMTP send failed: " + LastError);
             }
             return emailSenderModel.sentStatus;
         }

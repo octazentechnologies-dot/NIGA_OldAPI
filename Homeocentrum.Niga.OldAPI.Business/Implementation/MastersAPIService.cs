@@ -319,13 +319,19 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
+                    MainParentSubsection = item.MainParentSubsection,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     Description = item.Description,
@@ -354,13 +360,19 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.Message = "SubSection not found";
             }
 
+            var sectionNames = SubSectionNameLookup.GetSectionNames(context);
+            var parentNames = SubSectionNameLookup.GetParentSubSectionNames(context, subsectionEntityList);
+
             subsectionEntityList.ForEach(item =>
             {
                 subsectionModelList.Add(new SubSectionModel
                 {
                     SubSectionId = item.SubSectionId,
                     SectionId = item.SectionId,
+                    SectionName = sectionNames.NameOrNull(item.SectionId),
                     ParentSubSectionId = item.ParentSubSectionId,
+                    ParentSubSectionName = parentNames.NameOrNull(item.ParentSubSectionId) ?? string.Empty,
+                    MainParentSubsection = item.MainParentSubsection,
                     SubSectionName = item.SubSectionName,
                     SubSectionNameAlias = item.SubSectionNameAlias,
                     Description = item.Description,
@@ -896,15 +908,15 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     FirmPhoneNumber = item.FirmPhoneNumber,
                     FirmFaxNumber = item.FirmFaxNumber,
                     FirmEmailIid = item.FirmEmailIid,
-                    MailPassword = item.MailPassword,
+                    MailPassword = null,
                     IsFederation = item.IsFederation,
-                    FirmConnectionPath = item.FirmConnectionPath,
+                    FirmConnectionPath = null,
                     LanguageIds = item.LanguageIds,
                     ParentFirmId = item.ParentFirmId,
                     ModuleIds = item.ModuleIds,
                     UserLimit = item.UserLimit,
                     IsNeedToBeSingleTerminalLogin = item.IsNeedToBeSingleTerminalLogin,
-                    DatabaseBackupPath = item.DatabaseBackupPath,
+                    DatabaseBackupPath = null,
                     IsDateOverlap = item.IsDateOverlap,
                     ApplicationLockDate = item.ApplicationLockDate,
                     IsLockApplication = item.IsLockApplication,

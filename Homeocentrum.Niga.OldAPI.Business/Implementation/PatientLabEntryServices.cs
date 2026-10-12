@@ -87,7 +87,11 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                 errorResponseModel.StatusCode = HttpStatusCode.NotFound;
                 errorResponseModel.Message = "records not found";
             }
+            var labTestNames = context.PatientLabTestMaster
+                .Select(x => new { x.PatientLabTestId, x.LabTestName })
+                .ToDictionary(x => x.PatientLabTestId, x => x.LabTestName);
             patientLabEntities.ForEach(item => {
+                labTestNames.TryGetValue(item.PatientLabTestId, out var labTestName);
                 patientLabEntryModelList.Add(new PatientLabEntryModel
                 {
                     LabDate=item.LabDate,
@@ -95,8 +99,8 @@ namespace Homeocentrum.Niga.OldAPI.Business.Implementation
                     ParameterValue=item.ParameterValue,
                     PatientId=item.PatientId,
                     PatientLabId=item.PatientLabId,
-                    PatientLabTestId =item.PatientLabTestId                  
-                    
+                    PatientLabTestId =item.PatientLabTestId,
+                    PatientLabTestName = labTestName
                 });
             });
             return patientLabEntryModelList.OrderByDescending(x=>x.PatientLabId).ToList();
